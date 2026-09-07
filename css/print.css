@@ -1,0 +1,94 @@
+/* =======================================================
+   Supplier Performance Analysis System
+   Print & PDF Export Stylesheet
+   ======================================================= */
+
+@media print {
+  /* Hide UI navigation, sidebar, headers, buttons */
+  .sidebar,
+  .top-header,
+  .section-actions,
+  .filters-bar,
+  .modal-overlay,
+  .toast-container,
+  .notif-dropdown,
+  .quick-action-btn,
+  .btn,
+  .no-print {
+    display: none !important;
+  }
+
+  body, html {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .page-container {
+    padding: 0 !important;
+  }
+
+  .tab-pane {
+    display: none !important;
+  }
+
+  /* Show active report view */
+  #pane-reports {
+    display: block !important;
+  }
+
+  .card {
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .custom-table th {
+    background-color: #f3f4f6 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .custom-table td {
+    border-bottom: 1px solid #e5e7eb !important;
+    color: #000000 !important;
+  }
+
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 1rem;
+  }
+
+  .print-header h1 {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+  }
+
+  .print-header p {
+    font-size: 10pt;
+    color: #64748b;
+  }
+
+  .badge {
+    border: 1px solid #999999 !important;
+    color: #000000 !important;
+    background: transparent !important;
+  }
+}
+
+.print-header {
+  display: none;
+}

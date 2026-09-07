@@ -1,0 +1,340 @@
+/* =======================================================
+   Supplier Performance Analysis and Management System (SPAS)
+   Comprehensive Cross-Device Responsive Stylesheet (v2.5)
+   Support: Mobiles (320px-576px), Tablets (768px-992px),
+   Laptops (1024px-1366px), Desktops & 4K Monitors (1440px+)
+   ======================================================= */
+
+/* -------------------------------------------------------
+   1. DESKTOP COLLAPSED SIDEBAR MODE (ICON-ONLY)
+   ------------------------------------------------------- */
+body.sidebar-collapsed .app-sidebar {
+  width: var(--sidebar-collapsed-width, 72px) !important;
+}
+
+body.sidebar-collapsed .brand-title,
+body.sidebar-collapsed .brand-subtitle,
+body.sidebar-collapsed .nav-label,
+body.sidebar-collapsed .nav-header,
+body.sidebar-collapsed .user-details,
+body.sidebar-collapsed .sidebar-user-footer .text-truncate,
+body.sidebar-collapsed .badge {
+  display: none !important;
+}
+
+body.sidebar-collapsed .main-wrapper {
+  margin-left: var(--sidebar-collapsed-width, 72px) !important;
+}
+
+body.sidebar-collapsed .nav-link {
+  justify-content: center;
+  padding: 0.7rem 0;
+}
+
+body.sidebar-collapsed .nav-icon {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+body.sidebar-collapsed .sidebar-user-pill {
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+/* -------------------------------------------------------
+   2. MOBILE & TABLET DRAWER (SCREEN WIDTH < 992px)
+   ------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    width: 280px !important;
+    max-width: 85vw !important;
+    transform: translateX(-100%) !important;
+    box-shadow: none;
+    z-index: 1055 !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  body.mobile-sidebar-open {
+    overflow: hidden !important; /* Prevent background scroll when drawer is open */
+  }
+
+  body.mobile-sidebar-open .app-sidebar {
+    transform: translateX(0) !important;
+    box-shadow: 8px 0 36px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* Backdrop Overlay */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(9, 13, 22, 0.72);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1050;
+    transition: opacity 0.25s ease;
+  }
+
+  body.mobile-sidebar-open .sidebar-backdrop {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  /* Main Content Adjustments */
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100vw !important;
+    min-width: 0 !important;
+  }
+
+  .top-navbar {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Stat & Counter Cards */
+  .stat-card-row > [class*="col-"] {
+    margin-bottom: 1rem;
+  }
+}
+
+/* -------------------------------------------------------
+   3. TABLETS & IPADS (768px to 991.98px)
+   ------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .page-body, .container-fluid {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  /* 2-column layout for dashboard stats */
+  .col-md-3, .col-lg-3 {
+    flex: 0 0 auto;
+    width: 50% !important;
+  }
+
+  /* Charts Container */
+  .chart-canvas-container {
+    height: 280px !important;
+  }
+}
+
+/* -------------------------------------------------------
+   4. MOBILE DEVICES (PHONES: < 768px)
+   ------------------------------------------------------- */
+@media (max-width: 767.98px) {
+  /* Fluid Typography for Small Screens */
+  h1, .fs-1 { font-size: 1.6rem !important; }
+  h2, .fs-2 { font-size: 1.4rem !important; }
+  h3, .fs-3 { font-size: 1.25rem !important; }
+  h4, .fs-4 { font-size: 1.15rem !important; }
+  h5, .fs-5 { font-size: 1.05rem !important; }
+
+  /* Body Container Padding */
+  .page-body, .container-fluid, .p-4 {
+    padding: 1rem !important;
+  }
+
+  .main-wrapper {
+    padding-bottom: 2rem;
+  }
+
+  /* Top Navbar on Phone */
+  .top-navbar {
+    height: 58px !important;
+  }
+
+  .top-navbar .dropdown-menu {
+    width: 92vw !important;
+    max-width: 340px !important;
+    right: -10px !important;
+  }
+
+  /* Filters & Actions Bar Stacking */
+  .filters-toolbar, 
+  .card-saas-header, 
+  .d-flex.justify-content-between.align-items-center {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .filters-toolbar .btn,
+  .filters-toolbar .form-control,
+  .filters-toolbar .form-select {
+    width: 100% !important;
+  }
+
+  .card-saas-header .btn-group,
+  .card-saas-header .d-flex {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Stat & Counter Cards */
+  .col-sm-6, .col-md-3, .col-lg-3 {
+    width: 100% !important;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-saas {
+    border-radius: 10px !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .card-saas-body, .card-body {
+    padding: 1rem !important;
+  }
+
+  /* Responsive Horizontal Tables */
+  .table-responsive {
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 0.5rem;
+  }
+
+  .table-custom th, .table-custom td {
+    padding: 0.65rem 0.75rem !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap;
+  }
+
+  /* Charts Container */
+  .chart-canvas-container {
+    height: 240px !important;
+    position: relative;
+    width: 100%;
+  }
+
+  /* Touch-Friendly Buttons (Min 40px height) */
+  .btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  .btn-action-sm {
+    min-height: 32px !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+}
+
+/* -------------------------------------------------------
+   5. EXTRA SMALL PHONES (WIDTH < 420px)
+   ------------------------------------------------------- */
+@media (max-width: 419.98px) {
+  .top-navbar .btn-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .page-title-badge {
+    display: none !important;
+  }
+
+  .breadcrumb {
+    font-size: 0.72rem !important;
+  }
+}
+
+/* -------------------------------------------------------
+   6. SMALL LAPTOPS & NETBOOKS (1024px to 1280px)
+   ------------------------------------------------------- */
+@media (min-width: 992px) and (max-width: 1280px) {
+  :root {
+    --sidebar-width: 250px;
+  }
+
+  .app-sidebar {
+    width: 250px !important;
+  }
+
+  .main-wrapper {
+    margin-left: 250px !important;
+  }
+
+  .nav-link {
+    font-size: 0.81rem !important;
+    padding: 0.42rem 0.7rem !important;
+  }
+
+  .stat-card-number {
+    font-size: 1.45rem !important;
+  }
+}
+
+/* -------------------------------------------------------
+   7. ULTRA-WIDE & 4K SCREENS (> 1600px)
+   ------------------------------------------------------- */
+@media (min-width: 1600px) {
+  .container-fluid {
+    max-width: 1920px;
+    margin: 0 auto;
+  }
+
+  .stat-card-number {
+    font-size: 2rem !important;
+  }
+}
+
+/* -------------------------------------------------------
+   8. PRINT & EXPORT STYLESHEET
+   ------------------------------------------------------- */
+@media print {
+  .app-sidebar,
+  .top-navbar,
+  .app-footer,
+  .btn,
+  .card-saas-header .btn,
+  .filters-toolbar,
+  .no-print,
+  .sidebar-backdrop {
+    display: none !important;
+  }
+
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .page-body {
+    padding: 0 !important;
+  }
+
+  .card-saas {
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .table-custom th {
+    background: #f1f5f9 !important;
+    color: #000000 !important;
+  }
+
+  .print-header-report {
+    display: block !important;
+    text-align: center;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.print-header-report {
+  display: none;
+}

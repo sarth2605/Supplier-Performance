@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Supplier Performance Analysis System - Final Year Project for Evaluating, Comparing, and Ranking Suppliers">
+  <title>Supplier Performance Analysis System | Enterprise Analytics</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Core Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/print.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- =======================================================
+         SIDEBAR NAVIGATION
+         ======================================================= -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="brand-logo" onclick="app.navigate('dashboard')">
+          <div class="logo-icon">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">SupplierFlow</span>
+            <span class="logo-subtitle">Analysis System</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-section-title">Core Operations</span>
+        <a class="nav-item active" data-target="dashboard">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-target="suppliers">
+          <i class="fa-solid fa-building-user"></i>
+          <span>Suppliers Directory</span>
+        </a>
+        <a class="nav-item" data-target="performance-eval">
+          <i class="fa-solid fa-calculator"></i>
+          <span>Performance Eval</span>
+        </a>
+        <a class="nav-item" data-target="comparison">
+          <i class="fa-solid fa-scale-balanced"></i>
+          <span>Supplier Comparison</span>
+        </a>
+
+        <span class="nav-section-title">Intelligence & Reports</span>
+        <a class="nav-item" data-target="reports">
+          <i class="fa-solid fa-file-waveform"></i>
+          <span>Reports & Export</span>
+        </a>
+        <a class="nav-item" data-target="notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span>Alerts & Triggers</span>
+          <span class="nav-badge" id="sidebar-notif-badge">3</span>
+        </a>
+
+        <span class="nav-section-title">Project Deliverables</span>
+        <a class="nav-item" data-target="academic-showcase">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Final Year Project</span>
+        </a>
+        <a class="nav-item" data-target="settings">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Settings & Weights</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-mini-card">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80" alt="User Avatar" class="user-avatar" id="sidebar-user-avatar">
+          <div class="user-info">
+            <span class="user-name" id="sidebar-user-name">Admin User</span>
+            <span class="user-role-badge" id="sidebar-user-role">Admin • Procurement</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- =======================================================
+         MAIN APP WRAPPER
+         ======================================================= -->
+    <div class="main-wrapper">
+      
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation Menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="search-input" id="global-search-input" placeholder="Search supplier, code, category... (Press Enter)">
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="quick-action-btn" onclick="app.openAddSupplierModal()">
+            <i class="fa-solid fa-plus"></i> Add Supplier
+          </button>
+          
+          <button class="icon-btn" onclick="app.openEvaluationModal()" title="Record Evaluation">
+            <i class="fa-solid fa-star-half-stroke"></i>
+          </button>
+
+          <button class="icon-btn" onclick="app.navigate('notifications')" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notif-dot" id="header-notif-dot"></span>
+          </button>
+
+          <button class="icon-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <select class="role-switcher-select" id="header-role-select" title="Switch User Role">
+              <option value="Admin">Role: Admin</option>
+              <option value="Manager">Role: Manager</option>
+              <option value="Analyst">Role: Analyst</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- Print Report Header (Visible only when printing) -->
+      <div class="print-header">
+        <h1>Supplier Performance Analysis System</h1>
+        <p>B.Sc. Computer Science Final Year Project — Management Performance Report</p>
+        <p style="font-size: 8pt; color: #666; margin-top: 4px;">Generated on: <span id="print-date-timestamp">2026-09-01</span></p>
+      </div>
+
+      <!-- Main Page Content Panes -->
+      <main class="page-container">
+
+        <!-- =======================================================
+             1. DASHBOARD VIEW PANE
+             ======================================================= -->
+        <section class="tab-pane active" id="pane-dashboard">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>Executive Performance Dashboard</h1>
+              <p>Real-time analytics, weighted scoring distributions, and critical supplier watchlists.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" onclick="app.navigate('comparison')">
+                <i class="fa-solid fa-scale-balanced"></i> Compare Vendors
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="app.openEvaluationModal()">
+                <i class="fa-solid fa-plus"></i> New Evaluation
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card" style="--kpi-accent: #2563eb; --kpi-icon-bg: rgba(37, 99, 235, 0.12);">
+              <div class="kpi-details">
+                <span class="kpi-label">Total Suppliers</span>
+                <h2 class="kpi-value" id="kpi-total-suppliers">8</h2>
+                <span class="kpi-subtext"><i class="fa-solid fa-database"></i> Registered in Database</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-boxes-stacked"></i></div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-accent: #10b981; --kpi-icon-bg: rgba(16, 185, 129, 0.12);">
+              <div class="kpi-details">
+                <span class="kpi-label">Active Suppliers</span>
+                <h2 class="kpi-value" id="kpi-active-suppliers">6</h2>
+                <span class="kpi-subtext" style="color: var(--tier-excellent);"><i class="fa-solid fa-circle-check"></i> Operational & Vetted</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-handshake"></i></div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-accent: #8b5cf6; --kpi-icon-bg: rgba(139, 92, 246, 0.12);">
+              <div class="kpi-details">
+                <span class="kpi-label">Average Performance</span>
+                <h2 class="kpi-value" id="kpi-avg-score">83.95%</h2>
+                <span class="kpi-subtext"><i class="fa-solid fa-chart-simple"></i> Weighted System Avg</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-gauge-high"></i></div>
+            </div>
+
+            <div class="kpi-card" id="kpi-top-supplier" style="--kpi-accent: #10b981; --kpi-icon-bg: rgba(16, 185, 129, 0.12);">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div class="kpi-card" style="--kpi-accent: #ef4444; --kpi-icon-bg: rgba(239, 68, 68, 0.12);">
+              <div class="kpi-details">
+                <span class="kpi-label">Critical / Poor Vendors</span>
+                <h2 class="kpi-value" id="kpi-critical-count" style="color: var(--tier-critical);">2</h2>
+                <span class="kpi-subtext" style="color: var(--tier-critical);"><i class="fa-solid fa-triangle-exclamation"></i> Score &lt; 70% or High Defect</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </div>
+          </div>
+
+          <!-- Charts Row 1 -->
+          <div class="charts-grid">
+            <div class="card col-8">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Supplier Overall Performance Distribution</h3>
+                  <p class="card-subtitle">Calculated via formula: 30% Quality + 25% Delivery + 20% Cost + 15% Reliability + 10% Service</p>
+                </div>
+              </div>
+              <div class="chart-container chart-container-tall">
+                <canvas id="chart-dashboard-scores"></canvas>
+              </div>
+            </div>
+
+            <div class="card col-4">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title"><i class="fa-solid fa-chart-pie"></i> Multi-Parameter Radar</h3>
+                  <p class="card-subtitle">Average benchmark across all categories</p>
+                </div>
+              </div>
+              <div class="chart-container chart-container-tall">
+                <canvas id="chart-dashboard-radar"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row 2 -->
+          <div class="charts-grid">
+            <div class="card col-7">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> Historical Monthly Performance Trends</h3>
+                  <p class="card-subtitle">Monthly evaluation trajectory across Quality, Delivery & Overall averages</p>
+                </div>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-dashboard-trend"></canvas>
+              </div>
+            </div>
+
+            <div class="card col-5">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title"><i class="fa-solid fa-bullseye"></i> Defect Rate vs. On-Time Delivery</h3>
+                  <p class="card-subtitle">Quadrant analysis (High punctuality & low defect rate is ideal)</p>
+                </div>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-dashboard-scatter"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supplier Ranking Leaderboard Table -->
+          <div class="card col-12">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-ranking-star"></i> Supplier Ranking Leaderboard</h3>
+                <p class="card-subtitle">Complete list of suppliers ranked from highest to lowest overall score</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="app.navigate('suppliers')">
+                View All Directory <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Supplier Details</th>
+                    <th>Overall Score</th>
+                    <th>Rating Tier</th>
+                    <th>Defect Rate %</th>
+                    <th>On-Time %</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-ranking-tbody">
+                  <!-- Rendered via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =======================================================
+             2. SUPPLIERS DIRECTORY PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-suppliers">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>Supplier Directory & Lifecycle Management</h1>
+              <p>Manage supplier profiles, contact information, product categories, and compliance status.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-primary" onclick="app.openAddSupplierModal()">
+                <i class="fa-solid fa-user-plus"></i> Add New Supplier
+              </button>
+            </div>
+          </div>
+
+          <!-- Filters & Search Toolbar -->
+          <div class="filters-bar">
+            <div class="filter-group">
+              <div class="search-box" style="width: 260px;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" class="search-input" id="supplier-search-input" placeholder="Search suppliers...">
+              </div>
+
+              <select class="select-control" id="supplier-category-filter">
+                <option value="All">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Raw Materials">Raw Materials</option>
+                <option value="Packaging">Packaging</option>
+                <option value="Logistics">Logistics</option>
+                <option value="Machinery">Machinery</option>
+                <option value="IT Services">IT Services</option>
+                <option value="Chemicals">Chemicals</option>
+              </select>
+
+              <select class="select-control" id="supplier-rating-filter">
+                <option value="All">All Ratings</option>
+                <option value="Excellent">Excellent (90–100)</option>
+                <option value="Good">Good (80–89)</option>
+                <option value="Average">Average (70–79)</option>
+                <option value="Poor">Poor (60–69)</option>
+                <option value="Critical">Critical (&lt; 60)</option>
+              </select>
+
+              <select class="select-control" id="supplier-status-filter">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <span class="badge" id="suppliers-count-badge" style="background: var(--bg-surface-elevated); font-size: 0.85rem; padding: 0.4rem 0.8rem;">8 Suppliers</span>
+              <button class="btn btn-primary btn-sm" id="btn-view-table"><i class="fa-solid fa-table-list"></i> Table</button>
+              <button class="btn btn-secondary btn-sm" id="btn-view-grid"><i class="fa-solid fa-grip"></i> Grid</button>
+            </div>
+          </div>
+
+          <!-- Table View -->
+          <div class="card" id="suppliers-table-view">
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Supplier & Company</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Score</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="suppliers-table-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Grid View -->
+          <div id="suppliers-grid-view" style="display: none; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- =======================================================
+             3. PERFORMANCE EVALUATION PANE & CALCULATOR
+             ======================================================= -->
+        <section class="tab-pane" id="pane-performance-eval">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>Performance Evaluation & Formula Calculator</h1>
+              <p>Record multi-factor evaluations with real-time weighted score calculation and recommendation generation.</p>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="card col-7">
+              <form id="evaluation-form">
+                <div class="form-grid">
+                  <div class="form-group form-group-full">
+                    <label class="form-label" for="eval-form-supplier-select">Select Supplier to Evaluate *</label>
+                    <select class="form-control" id="eval-form-supplier-select" required>
+                      <!-- Rendered dynamically -->
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="eval-input-date">Evaluation Date</label>
+                    <input type="date" class="form-control" id="eval-input-date">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Evaluator Role</label>
+                    <input type="text" class="form-control" value="Procurement QA Analyst" readonly style="background: var(--bg-surface-elevated); opacity: 0.8;">
+                  </div>
+
+                  <!-- Sliders for 5 Parameters -->
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">1. Quality Score (Weight: 30%)</label>
+                      <span class="slider-value" id="val-quality">90%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="eval-input-quality" min="0" max="100" value="90">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">2. Delivery Score (Weight: 25%)</label>
+                      <span class="slider-value" id="val-delivery">85%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="eval-input-delivery" min="0" max="100" value="85">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">3. Cost Score (Weight: 20%)</label>
+                      <span class="slider-value" id="val-cost">88%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="eval-input-cost" min="0" max="100" value="88">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">4. Reliability Score (Weight: 15%)</label>
+                      <span class="slider-value" id="val-reliability">92%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="eval-input-reliability" min="0" max="100" value="92">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">5. Service Score (Weight: 10%)</label>
+                      <span class="slider-value" id="val-service">90%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="eval-input-service" min="0" max="100" value="90">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="eval-input-defect">Defect Rate (%) [0-100%]</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="eval-input-defect" value="0.8">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="eval-input-ontime">On-Time Delivery Rate (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="eval-input-ontime" value="98.0">
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <label class="form-label" for="eval-input-remarks">Evaluation Remarks / Audit Notes</label>
+                    <textarea class="form-control" id="eval-input-remarks" placeholder="Enter specific observations, batch numbers, compliance notes..."></textarea>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                  <button type="reset" class="btn btn-secondary" onclick="setTimeout(() => app.updateLiveEvaluationPreview(), 10)">Reset Sliders</button>
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Submit & Save Evaluation</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Live Score Computation Box & Insights -->
+            <div class="col-5" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div class="card">
+                <h3 class="card-title"><i class="fa-solid fa-calculator"></i> Real-Time Score Engine</h3>
+                <p class="card-subtitle">Live formula computation</p>
+
+                <div class="eval-preview-box">
+                  <div>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); font-weight: 700;">Calculated Overall Score</span>
+                    <div class="eval-preview-score" id="eval-live-score-value">88.65%</div>
+                  </div>
+                  <div>
+                    <span class="badge badge-good" id="eval-live-rating-badge" style="font-size: 1rem; padding: 0.5rem 1rem;">Good</span>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-secondary); background: var(--bg-surface-elevated); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                  <div style="font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);"><i class="fa-solid fa-square-root-variable"></i> Active Formula Breakdown:</div>
+                  <div id="eval-formula-breakdown" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+                    (90 × 30%) + (85 × 25%) + (88 × 20%) + (92 × 15%) + (90 × 10%) = <strong>88.65%</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="card-title"><i class="fa-solid fa-brain"></i> Automated Recommendation</h3>
+                <p class="card-subtitle">Rule-based strategic action generator</p>
+                <div style="margin-top: 0.85rem; padding: 1rem; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+                  <p id="eval-live-recommendation" style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.5;">
+                    Supplier demonstrates excellent quality (90%), but delivery timelines (85%) require tighter monitoring. Suitable for core operations.
+                  </p>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="card-title"><i class="fa-solid fa-table-cells"></i> Rating Scale Benchmark</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; font-size: 0.82rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><span class="badge badge-excellent">90 – 100%</span> <span>Excellent (Category Leader)</span></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><span class="badge badge-good">80 – 89%</span> <span>Good (Reliable Standard)</span></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><span class="badge badge-average">70 – 79%</span> <span>Average (Needs Attention)</span></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><span class="badge badge-poor">60 – 69%</span> <span>Poor (CAP Action Mandate)</span></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><span class="badge badge-critical">&lt; 60%</span> <span>Critical (Decommission Risk)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =======================================================
+             4. SUPPLIER 360 DETAIL PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-supplier-detail">
+          <div class="section-header">
+            <div class="section-title-group">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="btn btn-secondary btn-sm" onclick="app.navigate('suppliers')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <h1 id="detail-supplier-name">Apex Microtech Ltd</h1>
+                <span class="badge badge-excellent" id="detail-rating-badge">Excellent</span>
+                <span class="badge" id="detail-category-badge" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color);">Electronics</span>
+              </div>
+              <p id="detail-supplier-code" style="margin-top: 0.35rem;">SUP-101 • Apex Microtech Solutions Pvt Ltd</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" onclick="app.openEvaluationModal(app.activeSupplierId)"><i class="fa-solid fa-star"></i> Evaluate</button>
+              <button class="btn btn-secondary btn-sm" onclick="app.openEditSupplierModal(app.activeSupplierId)"><i class="fa-solid fa-pen"></i> Edit</button>
+            </div>
+          </div>
+
+          <!-- Company Profile & Contact Card -->
+          <div class="card col-12" style="margin-bottom: 1.25rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.85rem;">
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Email Address</span>
+                <div id="detail-email" style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">contact@example.com</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Phone / Mobile</span>
+                <div id="detail-phone" style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">+91 98765 43210</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Location & Facility</span>
+                <div id="detail-address" style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">Industrial City</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Registration ID</span>
+                <div id="detail-registration" style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">REG-2023</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Contract Period</span>
+                <div id="detail-contract" style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">Active</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Metrics Bar -->
+          <div class="kpi-grid">
+            <div class="kpi-card" style="--kpi-accent: #2563eb;">
+              <div class="kpi-details">
+                <span class="kpi-label">Current Overall Score</span>
+                <h2 class="kpi-value" id="detail-overall-score">92.05%</h2>
+                <span class="kpi-subtext">Latest weighted evaluation</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-award"></i></div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-accent: #10b981;">
+              <div class="kpi-details">
+                <span class="kpi-label">On-Time Delivery Rate</span>
+                <h2 class="kpi-value" id="detail-ontime-rate">98.5%</h2>
+                <span class="kpi-subtext" style="color: var(--tier-excellent);">Target SLA: 85%</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-truck-fast"></i></div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-accent: #f59e0b;">
+              <div class="kpi-details">
+                <span class="kpi-label">Defect Rate %</span>
+                <h2 class="kpi-value" id="detail-defect-rate">0.8%</h2>
+                <span class="kpi-subtext">Tolerance limit: 3.0%</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-microchip"></i></div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-accent: #8b5cf6;">
+              <div class="kpi-details">
+                <span class="kpi-label">Fulfillment Orders</span>
+                <h2 class="kpi-value" id="detail-orders-count">2</h2>
+                <span class="kpi-subtext">Purchase orders logged</span>
+              </div>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-clipboard-list"></i></div>
+            </div>
+          </div>
+
+          <!-- Charts Grid for Single Supplier -->
+          <div class="charts-grid">
+            <div class="card col-5">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title"><i class="fa-solid fa-spider"></i> Parameter Breakdown Radar</h3>
+                  <p class="card-subtitle">Quality, Delivery, Cost, Reliability, Service</p>
+                </div>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-detail-radar"></canvas>
+              </div>
+            </div>
+
+            <div class="card col-7">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title"><i class="fa-solid fa-chart-line"></i> Historical Performance Trajectory</h3>
+                  <p class="card-subtitle">Scores tracked over quarterly evaluations</p>
+                </div>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-detail-trend"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytical Insights & Recommendations Box -->
+          <div class="card col-12" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-lightbulb"></i> Performance Diagnosis & Strategy</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border-left: 4px solid var(--tier-excellent);">
+                <h4 style="color: var(--tier-excellent); font-weight: 700; margin-bottom: 0.35rem;"><i class="fa-solid fa-circle-check"></i> Key Strengths</h4>
+                <p id="detail-strengths-text" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;"></p>
+              </div>
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border-left: 4px solid var(--tier-poor);">
+                <h4 style="color: var(--tier-poor); font-weight: 700; margin-bottom: 0.35rem;"><i class="fa-solid fa-triangle-exclamation"></i> Weak Areas / Areas to Improve</h4>
+                <p id="detail-weaknesses-text" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;"></p>
+              </div>
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+                <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 0.35rem;"><i class="fa-solid fa-compass"></i> Management Recommendation</h4>
+                <p id="detail-recommendation-text" style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; font-weight: 600;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabbed Deep Dive: Products, Orders, Complaints, Evals -->
+          <div class="card col-12">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-boxes-packing"></i> Products & Catalog</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Item Code</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Unit Price</th>
+                    <th>Stock & Lead Time</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-products-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card col-12" style="margin-top: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-truck-ramp-box"></i> Fulfillment Orders History</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>PO Number</th>
+                    <th>Order Date</th>
+                    <th>Expected Date</th>
+                    <th>Delivered Date</th>
+                    <th>Total Value</th>
+                    <th>Fulfillment Status</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-orders-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card col-12" style="margin-top: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Quality & Delivery Complaints Log</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Issue Type</th>
+                    <th>Severity</th>
+                    <th>Description</th>
+                    <th>Resolution Status</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-complaints-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card col-12" style="margin-top: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Evaluation Audit Trail</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Evaluation Date</th>
+                    <th>Overall Score</th>
+                    <th>Rating</th>
+                    <th>Parameters (Q / D / C)</th>
+                    <th>Evaluator</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-evals-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =======================================================
+             5. SUPPLIER COMPARISON MATRIX PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-comparison">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>Multi-Supplier Comparison Matrix</h1>
+              <p>Compare multiple suppliers side-by-side to identify the best quality, delivery, and cost-effective partners.</p>
+            </div>
+          </div>
+
+          <!-- Selector Pills Bar -->
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">
+              Select Suppliers to Compare (Up to 4):
+            </span>
+            <div id="comparison-selector-pills" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <div id="comparison-content-area">
+            <div class="charts-grid">
+              <div class="card col-6">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="fa-solid fa-circle-nodes"></i> Multi-Vendor Radar Comparison</h3>
+                </div>
+                <div class="chart-container chart-container-tall">
+                  <canvas id="chart-comparison-radar"></canvas>
+                </div>
+              </div>
+
+              <div class="card col-6">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Parameter Scores by Supplier</h3>
+                </div>
+                <div class="chart-container chart-container-tall">
+                  <canvas id="chart-comparison-bar"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comparison Table Matrix -->
+            <div class="card col-12" style="margin-top: 1.5rem;">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-table"></i> Comparative Attribute Matrix</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);"><span class="highlight-best" style="padding: 2px 6px; border-radius: 4px;">Green</span> = Best in Category</span>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="comparison-matrix-table">
+                  <!-- Rendered via app.js -->
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =======================================================
+             6. REPORTS & EXPORT STUDIO PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-reports">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>Reports & Export Studio</h1>
+              <p>Generate management audits, trend summaries, CSV data sheets, and printable PDF documents.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" id="btn-export-csv"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+              <button class="btn btn-primary" id="btn-export-print"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+            </div>
+          </div>
+
+          <!-- Report Controls -->
+          <div class="filters-bar">
+            <div class="filter-group">
+              <select class="select-control" id="report-type-select">
+                <option value="master">Supplier Performance Master Report</option>
+                <option value="top_performers">Top Performers Leaderboard Report</option>
+                <option value="critical_suppliers">Poor & Critical Risk Audit Report</option>
+                <option value="monthly_trend">Monthly Performance History Report</option>
+                <option value="comparison">Selected Suppliers Comparison Report</option>
+              </select>
+
+              <select class="select-control" id="report-category-filter">
+                <option value="All">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Raw Materials">Raw Materials</option>
+                <option value="Packaging">Packaging</option>
+                <option value="Logistics">Logistics</option>
+                <option value="Machinery">Machinery</option>
+                <option value="IT Services">IT Services</option>
+                <option value="Chemicals">Chemicals</option>
+              </select>
+
+              <select class="select-control" id="report-rating-filter">
+                <option value="All">All Rating Tiers</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Good">Good</option>
+                <option value="Average">Average</option>
+                <option value="Poor">Poor</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Report Data Table -->
+          <div class="card">
+            <div class="table-responsive">
+              <table class="custom-table" id="reports-render-table">
+                <thead id="reports-table-thead"></thead>
+                <tbody id="reports-table-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =======================================================
+             7. NOTIFICATIONS & RISK ALERTS PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-notifications">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>System Alerts & Risk Notifications</h1>
+              <p>Automated triggers for low scores, excessive defect rates, contract expirations, and delivery bottlenecks.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" onclick="app.markAllNotificationsRead()"><i class="fa-solid fa-check-double"></i> Mark All as Read</button>
+            </div>
+          </div>
+
+          <div id="notifications-list-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- =======================================================
+             8. ACADEMIC & FINAL YEAR SHOWCASE PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-academic-showcase">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>Final Year Project Academic Showcase & Deliverables</h1>
+              <p>Complete project documentation, System Architecture, Entity-Relationship (ER) Diagram, DFDs, and MySQL Schema.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-primary btn-sm" onclick="app.copySQLSchema()"><i class="fa-solid fa-copy"></i> Copy MySQL Schema</button>
+            </div>
+          </div>
+
+          <!-- Academic Sub-tabs Navigation -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <button class="btn btn-primary academic-subtab-btn" data-academic-tab="architecture" onclick="app.switchAcademicTab('architecture')">
+              <i class="fa-solid fa-sitemap"></i> System Architecture
+            </button>
+            <button class="btn btn-secondary academic-subtab-btn" data-academic-tab="er-diagram" onclick="app.switchAcademicTab('er-diagram')">
+              <i class="fa-solid fa-network-wired"></i> ER Diagram
+            </button>
+            <button class="btn btn-secondary academic-subtab-btn" data-academic-tab="dfd" onclick="app.switchAcademicTab('dfd')">
+              <i class="fa-solid fa-arrows-split-up-and-left"></i> Data Flow Diagram (DFD)
+            </button>
+            <button class="btn btn-secondary academic-subtab-btn" data-academic-tab="schema" onclick="app.switchAcademicTab('schema')">
+              <i class="fa-solid fa-database"></i> MySQL Database Schema
+            </button>
+            <button class="btn btn-secondary academic-subtab-btn" data-academic-tab="viva" onclick="app.switchAcademicTab('viva')">
+              <i class="fa-solid fa-chalkboard-user"></i> Viva Preparation Guide
+            </button>
+          </div>
+
+          <!-- Sub-tab 1: System Architecture -->
+          <div class="academic-content-pane" id="academic-pane-architecture">
+            <div class="card">
+              <h3 class="card-title"><i class="fa-solid fa-layer-group"></i> Multi-Tier System Architecture</h3>
+              <p class="card-subtitle" style="margin-bottom: 1rem;">Section 17 & 22 Architectural Design Flow</p>
+              
+              <div class="diagram-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; text-align: center; gap: 1rem; flex-wrap: wrap;">
+                  <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; flex: 1; min-width: 160px; border: 1px solid #3b82f6;">
+                    <i class="fa-solid fa-desktop" style="font-size: 1.8rem; color: #60a5fa; margin-bottom: 0.5rem;"></i>
+                    <h4 style="color: #ffffff; font-weight: 700;">1. Presentation Layer</h4>
+                    <p style="font-size: 0.78rem; color: #94a3b8;">HTML5, CSS3, Chart.js, Responsive Dashboard</p>
+                  </div>
+                  <i class="fa-solid fa-arrow-right" style="color: #64748b; font-size: 1.5rem;"></i>
+                  <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; flex: 1; min-width: 160px; border: 1px solid #8b5cf6;">
+                    <i class="fa-solid fa-server" style="font-size: 1.8rem; color: #c084fc; margin-bottom: 0.5rem;"></i>
+                    <h4 style="color: #ffffff; font-weight: 700;">2. Application Logic</h4>
+                    <p style="font-size: 0.78rem; color: #94a3b8;">Weighted Score Engine & Recommendation Logic</p>
+                  </div>
+                  <i class="fa-solid fa-arrow-right" style="color: #64748b; font-size: 1.5rem;"></i>
+                  <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; flex: 1; min-width: 160px; border: 1px solid #10b981;">
+                    <i class="fa-solid fa-database" style="font-size: 1.8rem; color: #34d399; margin-bottom: 0.5rem;"></i>
+                    <h4 style="color: #ffffff; font-weight: 700;">3. Database Layer</h4>
+                    <p style="font-size: 0.78rem; color: #94a3b8;">MySQL Relational Schema (8 Normalized Tables)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-tab 2: ER Diagram -->
+          <div class="academic-content-pane" id="academic-pane-er-diagram" style="display: none;">
+            <div class="card">
+              <h3 class="card-title"><i class="fa-solid fa-network-wired"></i> Entity-Relationship (ER) Schema Map</h3>
+              <p class="card-subtitle" style="margin-bottom: 1rem;">Section 15 Database Relationships</p>
+              
+              <div class="diagram-box" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.6;">
+                <pre style="color: #93c5fd;">
++------------------+         1 : N         +-------------------+
+|      USERS       | --------------------> |   NOTIFICATIONS   |
+|------------------|                       |-------------------|
+| id (PK)          |                       | id (PK)           |
+| name, email      |                       | user_id (FK)      |
+| role, password   |                       | supplier_id (FK)  |
++------------------+                       | title, message    |
+         |                                 +-------------------+
+         | 1 : N (Evaluator)                         ^
+         v                                           |
++------------------+         1 : N                   |
+|   PERFORMANCE    | <--------------------+          |
+|------------------|                      |          |
+| id (PK)          |                      |          |
+| supplier_id (FK) |                      |          |
+| quality_score    |                      |          |
+| delivery_score   |                      |          |
+| cost_score       |                      |          |
+| overall_score    |                      |          |
+| rating           |                      |          |
++------------------+                      |          |
+                                   +---------------+ |
+                                   |   SUPPLIERS   |--+
+                                   |---------------|
+                                   | id (PK)       |
+                                   | supplier_code |
+                                   | supplier_name |
+                                   | category      |
+                                   | status        |
+                                   +---------------+
+                                     |           |
+                              1 : N  |           | 1 : N
+                                     v           v
+                    +------------------+       +------------------+
+                    |     PRODUCTS     |       |      ORDERS      |
+                    |------------------|       |------------------|
+                    | id (PK)          |       | id (PK)          |
+                    | supplier_id (FK) |       | supplier_id (FK) |
+                    | product_name     |       | order_number     |
+                    | price, stock     |       | amount, status   |
+                    +------------------+       +------------------+
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-tab 3: DFD -->
+          <div class="academic-content-pane" id="academic-pane-dfd" style="display: none;">
+            <div class="card">
+              <h3 class="card-title"><i class="fa-solid fa-arrows-split-up-and-left"></i> Data Flow Diagram (DFD Level 0 & Level 1)</h3>
+              <p class="card-subtitle" style="margin-bottom: 1rem;">Information flow from inputs to reports</p>
+              
+              <div class="diagram-box" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                <pre style="color: #a7f3d0;">
+[Admin / QA Analyst]
+       |
+       | (1. Supplier Profile & Evaluation Data)
+       v
++-----------------------------------------------------------+
+| Process 1.0: Evaluation & Weight Calculation Engine       |
+| Formula: (Q×0.30) + (D×0.25) + (C×0.20) + (R×0.15) + (S×0.10)|
++-----------------------------------------------------------+
+       |
+       | (Computed Overall Score & Rating Tier)
+       v
++------------------------+      +--------------------------+
+| Data Store D1:         |      | Process 2.0:             |
+| [Suppliers & Evals DB] | ===> | Analytics & Dashboard    |
++------------------------+      +--------------------------+
+                                       |
+                                       | (Visual Charts, Matrix, PDF)
+                                       v
+                                [Management / Decision Makers]
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-tab 4: Schema Explorer -->
+          <div class="academic-content-pane" id="academic-pane-schema" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-database"></i> MySQL DDL Script (database/schema.sql)</h3>
+                <button class="btn btn-secondary btn-sm" onclick="app.copySQLSchema()"><i class="fa-solid fa-copy"></i> Copy Script</button>
+              </div>
+              <pre class="sql-code-block" id="sql-schema-code">-- Supplier Performance Analysis System DDL Script
+CREATE DATABASE IF NOT EXISTS `supplier_performance_db`;
+USE `supplier_performance_db`;
+
+CREATE TABLE `suppliers` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `supplier_code` VARCHAR(30) NOT NULL UNIQUE,
+    `supplier_name` VARCHAR(150) NOT NULL,
+    `company_name` VARCHAR(150) NOT NULL,
+    `email` VARCHAR(120) NOT NULL,
+    `phone` VARCHAR(30) NOT NULL,
+    `category` ENUM('Raw Materials', 'Electronics', 'Packaging', 'Logistics', 'IT Services', 'Machinery', 'Chemicals') NOT NULL,
+    `contract_start_date` DATE NOT NULL,
+    `contract_end_date` DATE NOT NULL,
+    `status` ENUM('Active', 'Under Review', 'Inactive') DEFAULT 'Active'
+) ENGINE=InnoDB;
+
+CREATE TABLE `performance` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `supplier_id` INT NOT NULL,
+    `evaluation_date` DATE NOT NULL,
+    `quality_score` DECIMAL(5, 2) NOT NULL,
+    `delivery_score` DECIMAL(5, 2) NOT NULL,
+    `cost_score` DECIMAL(5, 2) NOT NULL,
+    `reliability_score` DECIMAL(5, 2) NOT NULL,
+    `service_score` DECIMAL(5, 2) NOT NULL,
+    `defect_rate` DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    `overall_score` DECIMAL(5, 2) NOT NULL,
+    `rating` ENUM('Excellent', 'Good', 'Average', 'Poor', 'Critical') NOT NULL,
+    FOREIGN KEY (`supplier_id`) REFERENCES `suppliers`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;</pre>
+            </div>
+          </div>
+
+          <!-- Sub-tab 5: Viva Preparation Guide -->
+          <div class="academic-content-pane" id="academic-pane-viva" style="display: none;">
+            <div class="card">
+              <h3 class="card-title"><i class="fa-solid fa-chalkboard-user"></i> Project Viva & Defense Reference Notes</h3>
+              <p class="card-subtitle" style="margin-bottom: 1rem;">Section 26 Project Objective & Technical Defense Q&A</p>
+
+              <div style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border-left: 4px solid var(--primary); margin-bottom: 1rem;">
+                <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 0.35rem;">Official Viva Objective Statement:</h4>
+                <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6; font-style: italic;">
+                  “The main objective of the Supplier Performance Analysis System is to evaluate, monitor, compare and rank suppliers based on quality, delivery, cost, reliability and service performance. The system automatically calculates an overall performance score and provides dashboards, charts and reports to support better supplier selection and management decisions.”
+                </p>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                  <strong style="color: var(--primary);">Q1: How is the overall performance score computed?</strong>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    Ans: It uses a weighted multi-attribute rating formula: Overall Score = (Quality × 0.30) + (Delivery × 0.25) + (Cost × 0.20) + (Reliability × 0.15) + (Service × 0.10).
+                  </p>
+                </div>
+                <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                  <strong style="color: var(--primary);">Q2: What is the rating classification scale?</strong>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    Ans: 90–100: Excellent, 80–89: Good, 70–79: Average, 60–69: Poor, Below 60: Critical.
+                  </p>
+                </div>
+                <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                  <strong style="color: var(--primary);">Q3: How are risk alerts triggered?</strong>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    Ans: The system automatically generates risk alerts when a supplier's score drops below 70%, defect rate exceeds 3.0%, or contract expires in under 45 days.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =======================================================
+             9. SYSTEM SETTINGS & WEIGHT CONFIGURATION PANE
+             ======================================================= -->
+        <section class="tab-pane" id="pane-settings">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h1>System Settings & Formula Weights</h1>
+              <p>Configure dynamic evaluation weights, scoring thresholds, and manage database backup/restore.</p>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="card col-7">
+              <form id="settings-form">
+                <div class="card-header">
+                  <div>
+                    <h3 class="card-title"><i class="fa-solid fa-sliders"></i> Dynamic Formula Weights Configuration</h3>
+                    <p class="card-subtitle">Adjust percentage weights. Sum must equal exactly 100%.</p>
+                  </div>
+                  <span id="setting-total-weight-indicator" style="font-weight: 800; font-family: 'JetBrains Mono', monospace;">Total: 100%</span>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">Quality Weight %</label>
+                      <span class="slider-value" id="setting-val-quality">30%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="setting-weight-quality" min="0" max="100" value="30">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">Delivery Weight %</label>
+                      <span class="slider-value" id="setting-val-delivery">25%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="setting-weight-delivery" min="0" max="100" value="25">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">Cost Weight %</label>
+                      <span class="slider-value" id="setting-val-cost">20%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="setting-weight-cost" min="0" max="100" value="20">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">Reliability Weight %</label>
+                      <span class="slider-value" id="setting-val-reliability">15%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="setting-weight-reliability" min="0" max="100" value="15">
+                    </div>
+                  </div>
+
+                  <div class="form-group form-group-full">
+                    <div style="display: flex; justify-content: space-between;">
+                      <label class="form-label">Service Weight %</label>
+                      <span class="slider-value" id="setting-val-service">10%</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="slider-input" id="setting-weight-service" min="0" max="100" value="10">
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Weights & Recalculate All Scores</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Database & System Maintenance Card -->
+            <div class="col-5" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div class="card">
+                <h3 class="card-title"><i class="fa-solid fa-database"></i> Data Backup & Reset</h3>
+                <p class="card-subtitle" style="margin-bottom: 1rem;">Export persistent storage or restore demo seed data.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                  <button class="btn btn-secondary" id="btn-backup-json" style="justify-content: flex-start;">
+                    <i class="fa-solid fa-download"></i> Export Database Backup (JSON)
+                  </button>
+                  <button class="btn btn-danger" id="btn-reset-data" style="justify-content: flex-start;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset to Default Demo Dataset
+                  </button>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="card-title"><i class="fa-solid fa-circle-info"></i> Project Information</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-top: 0.5rem;">
+                  <strong>System:</strong> Supplier Performance Analysis System<br>
+                  <strong>Course:</strong> B.Sc. Computer Science Final Year Project<br>
+                  <strong>Version:</strong> 2.0 Enterprise Release<br>
+                  <strong>Storage:</strong> LocalStorage + MySQL Schema
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- =======================================================
+         MODALS
+         ======================================================= -->
+
+    <!-- Modal 1: Add / Edit Supplier -->
+    <div class="modal-overlay" id="modal-supplier">
+      <div class="modal-card modal-card-large">
+        <div class="modal-header">
+          <h2 class="modal-title" id="supplier-modal-title"><i class="fa-solid fa-building"></i> Add New Supplier</h2>
+          <button class="modal-close-btn" onclick="app.closeModal('modal-supplier')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="supplier-form">
+          <div class="modal-body">
+            <input type="hidden" id="supplier-form-id">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-code">Supplier Code *</label>
+                <input type="text" class="form-control" id="supplier-form-code" required placeholder="e.g. SUP-109">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-name">Supplier / Trade Name *</label>
+                <input type="text" class="form-control" id="supplier-form-name" required placeholder="e.g. Acme Tech Solutions">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-company">Registered Company Legal Name *</label>
+                <input type="text" class="form-control" id="supplier-form-company" required placeholder="e.g. Acme Technologies India Pvt Ltd">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-category">Category *</label>
+                <select class="form-control" id="supplier-form-category" required>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Raw Materials">Raw Materials</option>
+                  <option value="Packaging">Packaging</option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Machinery">Machinery</option>
+                  <option value="IT Services">IT Services</option>
+                  <option value="Chemicals">Chemicals</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-email">Official Email Address *</label>
+                <input type="email" class="form-control" id="supplier-form-email" required placeholder="contact@acmetech.com">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-phone">Phone Number *</label>
+                <input type="tel" class="form-control" id="supplier-form-phone" required placeholder="+91 98765 43210">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-city">City *</label>
+                <input type="text" class="form-control" id="supplier-form-city" required placeholder="e.g. Bengaluru">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-state">State *</label>
+                <input type="text" class="form-control" id="supplier-form-state" required placeholder="e.g. Karnataka">
+              </div>
+
+              <div class="form-group form-group-full">
+                <label class="form-label" for="supplier-form-address">Full Physical Address</label>
+                <input type="text" class="form-control" id="supplier-form-address" placeholder="Plot 12, Industrial Area, Sector 5">
+              </div>
+
+              <div class="form-group form-group-full">
+                <label class="form-label" for="supplier-form-products">Products / Services Supplied</label>
+                <input type="text" class="form-control" id="supplier-form-products" placeholder="e.g. Microcontrollers, Sensors, PCB Modules">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-reg">Registration / GSTIN Number</label>
+                <input type="text" class="form-control" id="supplier-form-reg" placeholder="REG-KA-2023-4412">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-status">Initial Status</label>
+                <select class="form-control" id="supplier-form-status">
+                  <option value="Active">Active</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-start">Contract Start Date</label>
+                <input type="date" class="form-control" id="supplier-form-start">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="supplier-form-end">Contract End Date</label>
+                <input type="date" class="form-control" id="supplier-form-end">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-supplier')">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Supplier</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 2: Record Evaluation Quick Modal -->
+    <div class="modal-overlay" id="modal-evaluation">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title"><i class="fa-solid fa-star"></i> Record Performance Evaluation</h2>
+          <button class="modal-close-btn" onclick="app.closeModal('modal-evaluation')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+            Jump to the full interactive evaluation engine to test live formula calculations and diagnostic insights:
+          </p>
+          <button class="btn btn-primary" style="width: 100%;" onclick="app.closeModal('modal-evaluation'); app.navigate('performance-eval');">
+            <i class="fa-solid fa-calculator"></i> Open Interactive Evaluation Engine
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+  </div>
+
+  <!-- Application Logic Modules -->
+  <script src="js/mockData.js"></script>
+  <script src="js/calculations.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
