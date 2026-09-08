@@ -73,9 +73,11 @@ echo "========================================================\n\n";
 echo "1. Testing Public Endpoints & Unified Auth Architecture...\n";
 $public_endpoints = [
     'Root Entry Point'        => [BASE_TEST_URL, 200],
-    'Portal Selector'         => [BASE_TEST_URL . 'auth/portal_select.php', 200],
+    'Portal Selector Redir'   => [BASE_TEST_URL . 'auth/portal_select.php', 302],
     'Unified Common Login'    => [BASE_TEST_URL . 'auth/login.php', 200],
     'Unified Common Register' => [BASE_TEST_URL . 'auth/register.php', 200],
+    'Clean Route /login/'     => [BASE_TEST_URL . 'login/', 200],
+    'Clean Route /register/'  => [BASE_TEST_URL . 'register/', 200],
     'Admin Login Redirect'    => [BASE_TEST_URL . 'auth/admin_login.php', 302],
     'Manufacturer Login Redir'=> [BASE_TEST_URL . 'auth/manufacturer_login.php', 302],
     'Supplier Login Redir'    => [BASE_TEST_URL . 'auth/supplier_login.php', 302],
@@ -98,7 +100,6 @@ $home_res = http_get(BASE_TEST_URL . 'index.php');
 $home_sections = [
     'Hero Section'            => 'hero-section',
     'Dynamic Metrics Ribbon'  => 'stats-ribbon',
-    '4 Stakeholder Portals'   => 'Dedicated Stakeholder Portals',
     'Evaluation 4 Pillars'    => '4-Pillar Evaluation Framework',
     'Interactive Calculator'  => 'Interactive Score & Grade Simulator',
     'Enterprise Features'     => 'Enterprise Features & System Capabilities',

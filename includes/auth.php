@@ -86,7 +86,7 @@ function redirect_to_role_dashboard($role = null) {
 function require_login() {
     if (!is_logged_in()) {
         set_flash('warning', 'Please sign in to access your portal.');
-        header('Location: ' . BASE_URL . 'auth/portal_select.php');
+        header('Location: ' . BASE_URL . 'auth/login.php');
         exit;
     }
 }

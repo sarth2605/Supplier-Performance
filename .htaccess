@@ -1,0 +1,10 @@
+# SPAS Clean URL Routing
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Supplier%20Performance/
+
+    # Direct rewrites for primary clean authentication URLs
+    RewriteRule ^login/?$ auth/login.php [L,QSA]
+    RewriteRule ^register/?$ auth/register.php [L,QSA]
+    RewriteRule ^logout/?$ auth/logout.php [L,QSA]
+</IfModule>

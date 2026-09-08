@@ -1,9 +1,9 @@
 <?php
 /**
  * Supplier Performance Analysis and Management System (SPAS)
- * Common Dynamic Registration Gateway
+ * Modern Unified Dynamic Registration Gateway
  * Public registration for: Manufacturer, Supplier, Shopkeeper
- * (Admin account is strictly excluded from public registration)
+ * (Admin accounts are strictly pre-provisioned and restricted from public registration)
  */
 
 require_once __DIR__ . '/../config/config.php';
@@ -38,7 +38,11 @@ $formData = [
     'address' => '',
     'category' => 'Skincare Products',
     'payment_terms' => 'Net 30',
-    'shop_type' => 'Cosmetics Boutique'
+    'shop_type' => 'Cosmetics Boutique',
+    'factory_reg_no' => '',
+    'production_capacity' => '50,000',
+    'tax_id' => '',
+    'trade_license' => ''
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -47,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Strict RBAC enforcement: Block any attempt to register as Admin
     if (!in_array($selected_role, $public_roles)) {
-        $error = 'Invalid registration role specified. Administrative accounts cannot be registered publicly.';
+        $error = 'Invalid registration role specified. Admin accounts are pre-provisioned and cannot be registered publicly.';
     } elseif (!verify_csrf_token($csrf_token)) {
         $error = 'Security session expired. Please refresh the page and try again.';
     } else {
@@ -69,6 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $formData['category'] = trim($_POST['category'] ?? 'Skincare Products');
         $formData['payment_terms'] = trim($_POST['payment_terms'] ?? 'Net 30');
         $formData['shop_type'] = trim($_POST['shop_type'] ?? 'Cosmetics Boutique');
+        $formData['factory_reg_no'] = trim($_POST['factory_reg_no'] ?? '');
+        $formData['production_capacity'] = trim($_POST['production_capacity'] ?? '');
+        $formData['tax_id'] = trim($_POST['tax_id'] ?? '');
+        $formData['trade_license'] = trim($_POST['trade_license'] ?? '');
 
         // Validation
         if (empty($formData['name']) || empty($formData['email']) || empty($password)) {
@@ -107,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
                         $new_id = $db->lastInsertId();
                         log_activity($new_id, 'Manufacturer Registered', 'Auth', $new_id, 'New manufacturer lab registered: ' . $formData['company_name']);
-                        set_flash('success', 'Manufacturer account registered successfully! You can now sign in.');
+                        set_flash('success', 'Manufacturer account registered successfully! Please sign in with your credentials.');
                         header('Location: ' . BASE_URL . 'auth/login.php?role=manufacturer');
                         exit;
                     }
@@ -157,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $new_id = $db->lastInsertId();
 
                         log_activity($new_id, 'Supplier Registered', 'Auth', $new_id, 'New supplier distribution hub registered: ' . $formData['supplier_name']);
-                        set_flash('success', 'Supplier account registered successfully! You can now sign in.');
+                        set_flash('success', 'Supplier account registered successfully! Please sign in with your credentials.');
                         header('Location: ' . BASE_URL . 'auth/login.php?role=supplier');
                         exit;
                     }
@@ -181,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $new_id = $db->lastInsertId();
 
                         log_activity($new_id, 'Shopkeeper Registered', 'Auth', $new_id, 'New retail store registered: ' . $formData['shop_name']);
-                        set_flash('success', 'Shopkeeper boutique registered successfully! You can now sign in.');
+                        set_flash('success', 'Shopkeeper account registered successfully! Please sign in with your credentials.');
                         header('Location: ' . BASE_URL . 'auth/login.php?role=shopkeeper');
                         exit;
                     }
@@ -196,7 +204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stakeholder Registration — <?= APP_FULL_NAME ?></title>
+    <title>Unified Registration — <?= APP_FULL_NAME ?></title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -213,92 +221,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <style>
         body {
-            background-color: #090d16;
+            background-color: #0b0f19;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12), transparent 35%),
-                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.12), transparent 35%);
+                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.14), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.14), transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05), transparent 60%);
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: #f8fafc;
             min-height: 100vh;
         }
 
-        .register-container {
-            max-width: 680px;
+        .register-card {
+            background: rgba(17, 24, 39, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6);
             width: 100%;
+            max-width: 680px;
         }
 
-        .register-box {
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* 3-Role Selection Cards */
-        .role-selector-3col {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 1.75rem;
-        }
-
-        .role-card-select {
-            background: rgba(255, 255, 255, 0.04);
+        /* Segmented Role Pill Selector */
+        .role-segmented-bar {
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 14px;
-            padding: 1rem 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+            padding: 4px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
             user-select: none;
         }
 
-        .role-card-select i {
-            font-size: 1.5rem;
+        .role-pill-btn {
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 10px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .role-pill-btn i {
+            font-size: 1.15rem;
             transition: transform 0.2s ease;
         }
 
-        .role-card-select .role-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .role-card-select .role-sub {
-            font-size: 0.68rem;
-            color: #64748b;
-        }
-
-        .role-card-select:hover {
-            background: rgba(255, 255, 255, 0.08);
+        .role-pill-btn:hover {
             color: #ffffff;
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         /* Active State */
-        .role-card-select.active[data-role="manufacturer"] {
-            background: rgba(37, 99, 235, 0.18);
-            border-color: #3b82f6;
-            color: #60a5fa;
-            box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
+        .role-pill-btn.active[data-role="manufacturer"] {
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         }
-        .role-card-select.active[data-role="supplier"] {
-            background: rgba(16, 185, 129, 0.18);
-            border-color: #10b981;
-            color: #34d399;
-            box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+        .role-pill-btn.active[data-role="supplier"] {
+            background: #059669;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
         }
-        .role-card-select.active[data-role="shopkeeper"] {
-            background: rgba(139, 92, 246, 0.18);
-            border-color: #8b5cf6;
-            color: #c084fc;
-            box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+        .role-pill-btn.active[data-role="shopkeeper"] {
+            background: #7c3aed;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
         }
 
         .form-control-dark, .form-select-dark {
@@ -307,32 +305,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #ffffff;
             border-radius: 10px;
             padding: 0.65rem 1rem;
+            font-size: 0.9rem;
         }
         .form-control-dark:focus, .form-select-dark:focus {
             background: rgba(255, 255, 255, 0.08);
             border-color: #38bdf8;
             color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
         }
         .form-select-dark option {
             background: #0f172a;
             color: #ffffff;
         }
 
-        .admin-note-box {
-            background: rgba(220, 38, 38, 0.08);
-            border: 1px solid rgba(220, 38, 38, 0.2);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
+        .btn-submit-action {
+            border-radius: 10px;
+            font-weight: 700;
+            padding: 0.75rem;
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
         }
     </style>
 </head>
 <body class="d-flex flex-column justify-content-between">
 
-    <!-- Top Simple Bar -->
+    <!-- Top Navigation Header -->
     <header class="py-3 px-4 d-flex align-items-center justify-content-between">
         <a href="<?= BASE_URL ?>index.php" class="text-decoration-none d-flex align-items-center gap-2 text-white">
-            <div style="width: 32px; height: 32px; border-radius: 8px; background: #2563eb; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center;">
                 <i class="fa-solid fa-chart-line text-white small"></i>
             </div>
             <span class="fw-bold tracking-tight">SPAS</span>
@@ -347,263 +347,322 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </header>
 
-    <!-- Center Dynamic Registration Form -->
+    <!-- Center Unified Registration Card -->
     <main class="container py-4 d-flex align-items-center justify-content-center flex-grow-1">
-        <div class="register-container">
+        <div class="register-card p-4 p-md-4 shadow">
             
-            <div class="register-box p-4 p-md-5 mb-3">
-                
-                <div class="text-center mb-4">
-                    <div class="badge bg-primary bg-opacity-20 text-info px-3 py-1 rounded-pill extra-small fw-bold mb-2">
-                        MULTI-STAKEHOLDER REGISTRATION
-                    </div>
-                    <h3 class="fw-extrabold text-white mb-1">Create Your Account</h3>
-                    <p class="text-muted extra-small mb-0">Select your position in the supply chain to open your personalized console</p>
+            <!-- Header Section -->
+            <div class="text-center mb-3">
+                <h4 class="fw-bold text-white mb-1">Create Account</h4>
+                <p class="text-muted extra-small mb-0">Register your organization to join the supply chain network</p>
+            </div>
+
+            <!-- Administrator Restriction Note -->
+            <div class="alert alert-dark border-secondary border-opacity-50 py-2 px-3 extra-small mb-3 rounded-3 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-danger"></i>
+                    <span><strong>Admin accounts are pre-provisioned</strong> (Central governance only).</span>
                 </div>
+                <a href="<?= BASE_URL ?>auth/login.php?role=admin" class="text-danger fw-bold text-decoration-none ms-2">Admin Sign In &rarr;</a>
+            </div>
 
-                <!-- Flash / Error Notification -->
-                <?php render_flash(); ?>
-                <?php if (!empty($error)): ?>
-                    <div class="alert alert-danger py-2 px-3 extra-small mb-3 rounded-3 d-flex align-items-start gap-2">
-                        <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
-                        <div><?= $error ?></div>
-                    </div>
-                <?php endif; ?>
+            <!-- Flash & Error Alerts -->
+            <?php render_flash(); ?>
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger py-2 px-3 extra-small mb-3 rounded-3 d-flex align-items-start gap-2">
+                    <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                    <div><?= $error ?></div>
+                </div>
+            <?php endif; ?>
 
-                <form method="POST" action="<?= BASE_URL ?>auth/register.php" id="registerForm">
-                    <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
-                    <input type="hidden" name="role" id="registerRoleInput" value="<?= htmlspecialchars($selected_role) ?>">
+            <form method="POST" action="<?= BASE_URL ?>auth/register.php" id="unifiedRegisterForm">
+                <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                <input type="hidden" name="role" id="selectedRoleInput" value="<?= htmlspecialchars($selected_role) ?>">
 
-                    <!-- 1. Who is Registering? Role Selector (Strictly Excludes Admin) -->
-                    <label class="form-label extra-small fw-bold text-uppercase text-light mb-2">
-                        1. Who is registering?
+                <!-- 1. Segmented Role Selector -->
+                <div class="mb-3">
+                    <label class="form-label extra-small fw-bold text-uppercase text-light mb-1.5 d-flex justify-content-between">
+                        <span>Who is Registering?</span>
+                        <span id="roleBadgeLabel" class="text-primary font-monospace" style="font-size: 0.68rem;">MANUFACTURER LAB</span>
                     </label>
-                    <div class="role-selector-3col">
-                        
-                        <!-- Manufacturer -->
-                        <div class="role-card-select <?= ($selected_role === 'manufacturer') ? 'active' : '' ?>" data-role="manufacturer" onclick="setRegisterRole('manufacturer')">
-                            <i class="fa-solid fa-industry text-primary"></i>
-                            <div class="role-title">Manufacturer</div>
-                            <div class="role-sub">Tier 1 Production Lab</div>
-                        </div>
-
-                        <!-- Supplier -->
-                        <div class="role-card-select <?= ($selected_role === 'supplier') ? 'active' : '' ?>" data-role="supplier" onclick="setRegisterRole('supplier')">
-                            <i class="fa-solid fa-truck-ramp-box text-success"></i>
-                            <div class="role-title">Supplier</div>
-                            <div class="role-sub">Distribution & Hub</div>
-                        </div>
-
-                        <!-- Shopkeeper -->
-                        <div class="role-card-select <?= ($selected_role === 'shopkeeper') ? 'active' : '' ?>" data-role="shopkeeper" onclick="setRegisterRole('shopkeeper')">
-                            <i class="fa-solid fa-store" style="color: #a855f7;"></i>
-                            <div class="role-title">Shopkeeper</div>
-                            <div class="role-sub">Retail Boutique</div>
-                        </div>
-
-                    </div>
-
-                    <!-- 2. Dynamic Organization Fields -->
-                    <div class="mb-4 p-3 rounded-3 bg-white bg-opacity-5 border border-white border-opacity-10">
-                        <span class="extra-small fw-bold text-uppercase text-info d-block mb-3" id="orgSectionTitle">
-                            2. Organization Details (Manufacturer)
-                        </span>
-
-                        <!-- A. Manufacturer Specific Field -->
-                        <div class="role-field-group" id="field-manufacturer">
-                            <div class="mb-3">
-                                <label for="company_name" class="form-label extra-small fw-bold text-light">Manufacturing Company / Formulation Lab Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-dark" id="company_name" name="company_name" value="<?= htmlspecialchars($formData['company_name']) ?>" placeholder="e.g., GlowTech Bio-Cosmetics Ltd.">
-                            </div>
-                        </div>
-
-                        <!-- B. Supplier Specific Fields -->
-                        <div class="role-field-group d-none" id="field-supplier">
-                            <div class="mb-3">
-                                <label for="supplier_name" class="form-label extra-small fw-bold text-light">Supplier / Distribution Company Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-dark" id="supplier_name" name="supplier_name" value="<?= htmlspecialchars($formData['supplier_name']) ?>" placeholder="e.g., Luxe Pure Distribution Hub">
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="category" class="form-label extra-small fw-bold text-light">Primary Category Supplied</label>
-                                    <select class="form-select form-select-dark" id="category" name="category">
-                                        <option value="Skincare Products" <?= ($formData['category'] === 'Skincare Products') ? 'selected' : '' ?>>Skincare Products</option>
-                                        <option value="Face Products" <?= ($formData['category'] === 'Face Products') ? 'selected' : '' ?>>Face Products</option>
-                                        <option value="Haircare & Shampoos" <?= ($formData['category'] === 'Haircare & Shampoos') ? 'selected' : '' ?>>Haircare & Shampoos</option>
-                                        <option value="Fragrance & Perfumes" <?= ($formData['category'] === 'Fragrance & Perfumes') ? 'selected' : '' ?>>Fragrance & Perfumes</option>
-                                        <option value="Raw Materials & Oils" <?= ($formData['category'] === 'Raw Materials & Oils') ? 'selected' : '' ?>>Raw Materials & Oils</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="payment_terms" class="form-label extra-small fw-bold text-light">Default Payment Terms</label>
-                                    <select class="form-select form-select-dark" id="payment_terms" name="payment_terms">
-                                        <option value="Net 30">Net 30 Days</option>
-                                        <option value="Net 15">Net 15 Days</option>
-                                        <option value="Immediate">Immediate Transfer</option>
-                                        <option value="COD">Cash On Delivery</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- C. Shopkeeper Specific Field -->
-                        <div class="role-field-group d-none" id="field-shopkeeper">
-                            <div class="mb-3">
-                                <label for="shop_name" class="form-label extra-small fw-bold text-light">Retail Store / Cosmetics Boutique Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-dark" id="shop_name" name="shop_name" value="<?= htmlspecialchars($formData['shop_name']) ?>" placeholder="e.g., Glamour Glow Beauty Storefront">
-                            </div>
-                        </div>
-
-                        <!-- Address Field for Facility / Hub / Store -->
-                        <div class="mt-3">
-                            <label for="address" class="form-label extra-small fw-bold text-light" id="addressLabel">Factory / Facility Street Address</label>
-                            <input type="text" class="form-control form-control-dark" id="address" name="address" value="<?= htmlspecialchars($formData['address']) ?>" placeholder="Building, Street, Industrial Area">
-                        </div>
-
-                    </div>
-
-                    <!-- 3. Account Representative & Contact Details -->
-                    <div class="mb-4">
-                        <span class="extra-small fw-bold text-uppercase text-light d-block mb-2">3. Primary Contact Person & Login Credentials</span>
-                        
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="name" class="form-label extra-small fw-bold text-light">Representative Full Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-dark" id="name" name="name" value="<?= htmlspecialchars($formData['name']) ?>" placeholder="e.g., Dr. Rajesh Mehta" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="email" class="form-label extra-small fw-bold text-light">Official Email Address <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control form-control-dark" id="email" name="email" value="<?= htmlspecialchars($formData['email']) ?>" placeholder="name@company.com" required>
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label for="phone" class="form-label extra-small fw-bold text-light">Phone Number</label>
-                                <input type="text" class="form-control form-control-dark" id="phone" name="phone" value="<?= htmlspecialchars($formData['phone']) ?>" placeholder="e.g., 9822334455">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="city" class="form-label extra-small fw-bold text-light">City</label>
-                                <input type="text" class="form-control form-control-dark" id="city" name="city" value="<?= htmlspecialchars($formData['city']) ?>" placeholder="City">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="state" class="form-label extra-small fw-bold text-light">State</label>
-                                <input type="text" class="form-control form-control-dark" id="state" name="state" value="<?= htmlspecialchars($formData['state']) ?>" placeholder="State">
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="password" class="form-label extra-small fw-bold text-light">Password (Min 6 chars) <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control form-control-dark" id="password" name="password" placeholder="••••••••••••" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="confirm_password" class="form-label extra-small fw-bold text-light">Confirm Password <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control form-control-dark" id="confirm_password" name="confirm_password" placeholder="••••••••••••" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold shadow-sm mb-3" id="registerSubmitBtn">
-                        Complete Manufacturer Registration <i class="fa-solid fa-arrow-right ms-1"></i>
-                    </button>
-
-                </form>
-
-                <!-- Admin Notice Box -->
-                <div class="admin-note-box extra-small text-light d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-danger fs-6"></i>
-                    <div>
-                        <strong>Administrator accounts are not available through public registration.</strong> Central governance credentials are restricted to designated system administrators.
+                    <div class="role-segmented-bar">
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'manufacturer') ? 'active' : '' ?>" data-role="manufacturer" onclick="switchRegRole('manufacturer')">
+                            <i class="fa-solid fa-industry"></i>
+                            <span>Manufacturer</span>
+                        </button>
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'supplier') ? 'active' : '' ?>" data-role="supplier" onclick="switchRegRole('supplier')">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            <span>Supplier</span>
+                        </button>
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'shopkeeper') ? 'active' : '' ?>" data-role="shopkeeper" onclick="switchRegRole('shopkeeper')">
+                            <i class="fa-solid fa-store"></i>
+                            <span>Shopkeeper</span>
+                        </button>
                     </div>
                 </div>
 
-            </div>
+                <!-- 2. Dynamic Role-Specific Form Fields -->
+                
+                <!-- Manufacturer Dynamic Fields -->
+                <div id="manufacturerFields" class="p-3 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 mb-3" style="<?= ($selected_role === 'manufacturer') ? '' : 'display: none;' ?>">
+                    <h6 class="fw-bold text-primary extra-small text-uppercase mb-2">
+                        <i class="fa-solid fa-industry me-1"></i> Manufacturer Lab Details
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Company / Lab Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-dark" name="company_name" value="<?= htmlspecialchars($formData['company_name']) ?>" placeholder="e.g. GlowTech Formulation Labs">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Factory License / Reg No.</label>
+                            <input type="text" class="form-control form-control-dark" name="factory_reg_no" value="<?= htmlspecialchars($formData['factory_reg_no']) ?>" placeholder="e.g. FACT-MH-2026-891">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label extra-small text-light mb-1">Monthly Production Capacity (Units)</label>
+                            <input type="text" class="form-control form-control-dark" name="production_capacity" value="<?= htmlspecialchars($formData['production_capacity']) ?>" placeholder="e.g. 50,000 units/mo">
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Link to Unified Login -->
-            <div class="text-center">
-                <p class="text-muted small mb-0">
-                    Already registered? 
-                    <a href="<?= BASE_URL ?>auth/login.php" class="text-primary fw-bold text-decoration-none">
-                        Sign In through the Common Portal
-                    </a>
-                </p>
-            </div>
+                <!-- Supplier Dynamic Fields -->
+                <div id="supplierFields" class="p-3 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 mb-3" style="<?= ($selected_role === 'supplier') ? '' : 'display: none;' ?>">
+                    <h6 class="fw-bold text-success extra-small text-uppercase mb-2">
+                        <i class="fa-solid fa-truck-ramp-box me-1"></i> Supplier / Distribution Hub Details
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Supplier / Hub Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-dark" name="supplier_name" value="<?= htmlspecialchars($formData['supplier_name']) ?>" placeholder="e.g. Glow Beauty Distribution Hub">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">GSTIN / Tax ID</label>
+                            <input type="text" class="form-control form-control-dark" name="tax_id" value="<?= htmlspecialchars($formData['tax_id']) ?>" placeholder="27AAACG0123M1Z5">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Product Category</label>
+                            <select class="form-select form-select-dark" name="category">
+                                <option value="Skincare Products" <?= ($formData['category'] === 'Skincare Products') ? 'selected' : '' ?>>Skincare Products</option>
+                                <option value="Haircare & Shampoos" <?= ($formData['category'] === 'Haircare & Shampoos') ? 'selected' : '' ?>>Haircare & Shampoos</option>
+                                <option value="Organic Cosmetics" <?= ($formData['category'] === 'Organic Cosmetics') ? 'selected' : '' ?>>Organic Cosmetics</option>
+                                <option value="Packaging & Dispensers" <?= ($formData['category'] === 'Packaging & Dispensers') ? 'selected' : '' ?>>Packaging & Dispensers</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Payment Terms</label>
+                            <select class="form-select form-select-dark" name="payment_terms">
+                                <option value="Net 15" <?= ($formData['payment_terms'] === 'Net 15') ? 'selected' : '' ?>>Net 15 Days</option>
+                                <option value="Net 30" <?= ($formData['payment_terms'] === 'Net 30') ? 'selected' : '' ?>>Net 30 Days (Standard)</option>
+                                <option value="Net 60" <?= ($formData['payment_terms'] === 'Net 60') ? 'selected' : '' ?>>Net 60 Days</option>
+                                <option value="Advance" <?= ($formData['payment_terms'] === 'Advance') ? 'selected' : '' ?>>100% Advance</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Shopkeeper Dynamic Fields -->
+                <div id="shopkeeperFields" class="p-3 rounded-3 bg-purple bg-opacity-10 border border-purple border-opacity-25 mb-3" style="border-color: rgba(124, 58, 237, 0.3) !important; <?= ($selected_role === 'shopkeeper') ? '' : 'display: none;' ?>">
+                    <h6 class="fw-bold extra-small text-uppercase mb-2" style="color: #c084fc;">
+                        <i class="fa-solid fa-store me-1"></i> Retail Store / Boutique Details
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Store / Boutique Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-dark" name="shop_name" value="<?= htmlspecialchars($formData['shop_name']) ?>" placeholder="e.g. Luxe Glamour Boutique">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label extra-small text-light mb-1">Trade License / Shop Reg No.</label>
+                            <input type="text" class="form-control form-control-dark" name="trade_license" value="<?= htmlspecialchars($formData['trade_license']) ?>" placeholder="TL-KA-2026-4412">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label extra-small text-light mb-1">Retail Store Type</label>
+                            <select class="form-select form-select-dark" name="shop_type">
+                                <option value="Cosmetics Boutique" <?= ($formData['shop_type'] === 'Cosmetics Boutique') ? 'selected' : '' ?>>Cosmetics Boutique</option>
+                                <option value="Beauty Salon & Spa" <?= ($formData['shop_type'] === 'Beauty Salon & Spa') ? 'selected' : '' ?>>Beauty Salon & Spa</option>
+                                <option value="Department Store Counter" <?= ($formData['shop_type'] === 'Department Store Counter') ? 'selected' : '' ?>>Department Store Counter</option>
+                                <option value="Online Retailer" <?= ($formData['shop_type'] === 'Online Retailer') ? 'selected' : '' ?>>Online E-Commerce Retailer</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Standard Account & Contact Credentials -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Full Name / Contact Person <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control form-control-dark border-start-0 ps-0" id="name" name="name" value="<?= htmlspecialchars($formData['name']) ?>" placeholder="e.g. Dr. Rajesh Mehta" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="email" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Work Email Address <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control form-control-dark border-start-0 ps-0" id="email" name="email" value="<?= htmlspecialchars($formData['email']) ?>" placeholder="contact@company.com" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </span>
+                            <input type="tel" class="form-control form-control-dark border-start-0 ps-0" id="phone" name="phone" value="<?= htmlspecialchars($formData['phone']) ?>" placeholder="98XXXXXXXX">
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="city" class="form-label extra-small fw-bold text-uppercase text-light mb-1">City</label>
+                        <input type="text" class="form-control form-control-dark" id="city" name="city" value="<?= htmlspecialchars($formData['city']) ?>" placeholder="Mumbai">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="state" class="form-label extra-small fw-bold text-uppercase text-light mb-1">State</label>
+                        <input type="text" class="form-control form-control-dark" id="state" name="state" value="<?= htmlspecialchars($formData['state']) ?>" placeholder="Maharashtra">
+                    </div>
+
+                    <div class="col-12">
+                        <label for="address" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Street Address</label>
+                        <input type="text" class="form-control form-control-dark" id="address" name="address" value="<?= htmlspecialchars($formData['address']) ?>" placeholder="Industrial Area, Sector 4">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="password" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" class="form-control form-control-dark border-start-0 border-end-0 ps-0" id="password" name="password" placeholder="Min 6 characters" required>
+                            <button class="btn btn-outline-secondary border-secondary border-opacity-50 text-light" type="button" onclick="togglePassVisibility('password', 'passEye')">
+                                <i class="fa-solid fa-eye" id="passEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Confirm Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" class="form-control form-control-dark border-start-0 border-end-0 ps-0" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                            <button class="btn btn-outline-secondary border-secondary border-opacity-50 text-light" type="button" onclick="togglePassVisibility('confirm_password', 'confPassEye')">
+                                <i class="fa-solid fa-eye" id="confPassEye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Submit Button -->
+                <button type="submit" class="btn btn-primary w-100 btn-submit-action shadow-sm mb-3" id="submitRegBtn">
+                    <span id="submitRegLabel">Register as Manufacturer</span> <i class="fa-solid fa-arrow-right ms-1"></i>
+                </button>
+
+                <!-- 5. Already Have Account Toggle -->
+                <div class="text-center extra-small text-muted">
+                    Already have an account? 
+                    <a href="<?= BASE_URL ?>auth/login.php" class="text-info text-decoration-none fw-semibold">Sign In</a>
+                </div>
+
+            </form>
         </div>
     </main>
 
-    <!-- Bottom Footer -->
-    <footer class="py-3 text-center text-muted extra-small">
-        &copy; <?= date('Y') ?> Supplier Performance Analysis and Management System (SPAS) &bull; Enterprise Edition
+    <!-- Footer -->
+    <footer class="py-3 px-4 text-center extra-small text-muted">
+        <span>&copy; <?= date('Y') ?> Supplier Performance Analysis & Management System (SPAS). Enterprise v2.5</span>
     </footer>
 
-    <!-- Dynamic Switching JavaScript -->
+    <!-- JavaScript Role Selector Logic -->
     <script>
-        const registerMeta = {
+        const roleConfig = {
             'manufacturer': {
-                name: 'Manufacturer',
-                btnClass: 'btn-primary',
-                btnText: 'Complete Manufacturer Registration',
-                sectionTitle: '2. Organization Details (Manufacturer Formulation Lab)',
-                addressLabel: 'Manufacturing Plant / Lab Address'
+                label: 'MANUFACTURER LAB',
+                color: '#3b82f6',
+                btnText: 'Register as Manufacturer',
+                btnClass: 'btn-primary'
             },
             'supplier': {
-                name: 'Supplier',
-                btnClass: 'btn-success',
-                btnText: 'Complete Supplier Registration',
-                sectionTitle: '2. Organization Details (Supplier Distribution Hub)',
-                addressLabel: 'Regional Distribution Warehouse Address'
+                label: 'SUPPLIER HUB',
+                color: '#10b981',
+                btnText: 'Register as Supplier',
+                btnClass: 'btn-success'
             },
             'shopkeeper': {
-                name: 'Shopkeeper',
-                btnClass: 'btn-purple text-white',
-                btnText: 'Complete Shopkeeper Store Registration',
-                sectionTitle: '2. Organization Details (Retail Boutique Store)',
-                addressLabel: 'Retail Storefront Address'
+                label: 'RETAIL BOUTIQUE',
+                color: '#c084fc',
+                btnText: 'Register as Shopkeeper',
+                btnClass: 'btn-primary'
             }
         };
 
-        function setRegisterRole(roleKey) {
-            if (!registerMeta[roleKey]) roleKey = 'manufacturer';
-            document.getElementById('registerRoleInput').value = roleKey;
+        function switchRegRole(roleKey) {
+            const role = roleConfig[roleKey] ? roleKey : 'manufacturer';
+            const cfg = roleConfig[role];
 
-            // Update card active states
-            document.querySelectorAll('.role-card-select').forEach(card => {
-                card.classList.remove('active');
-                if (card.getAttribute('data-role') === roleKey) {
-                    card.classList.add('active');
-                }
+            // 1. Update hidden input
+            document.getElementById('selectedRoleInput').value = role;
+
+            // 2. Update pill selector active class
+            document.querySelectorAll('.role-pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-role') === role);
             });
 
-            // Toggle dynamic field groups
-            document.getElementById('field-manufacturer').classList.add('d-none');
-            document.getElementById('field-supplier').classList.add('d-none');
-            document.getElementById('field-shopkeeper').classList.add('d-none');
-
-            document.getElementById('field-' + roleKey).classList.remove('d-none');
-
-            // Update labels and button styling
-            const meta = registerMeta[roleKey];
-            document.getElementById('orgSectionTitle').textContent = meta.sectionTitle;
-            document.getElementById('addressLabel').textContent = meta.addressLabel;
-
-            const btn = document.getElementById('registerSubmitBtn');
-            btn.className = 'btn w-100 py-2.5 rounded-3 fw-bold shadow-sm mb-3 ' + meta.btnClass;
-            if (roleKey === 'shopkeeper') {
-                btn.style.backgroundColor = '#7c3aed';
-            } else {
-                btn.style.backgroundColor = '';
+            // 3. Update badge label
+            const badge = document.getElementById('roleBadgeLabel');
+            if (badge) {
+                badge.innerText = cfg.label;
+                badge.style.color = cfg.color;
             }
-            btn.innerHTML = meta.btnText + ' <i class="fa-solid fa-arrow-right ms-1"></i>';
+
+            // 4. Toggle dynamic fields
+            document.getElementById('manufacturerFields').style.display = (role === 'manufacturer') ? 'block' : 'none';
+            document.getElementById('supplierFields').style.display = (role === 'supplier') ? 'block' : 'none';
+            document.getElementById('shopkeeperFields').style.display = (role === 'shopkeeper') ? 'block' : 'none';
+
+            // 5. Update Submit button
+            const submitBtn = document.getElementById('submitRegBtn');
+            const submitLabel = document.getElementById('submitRegLabel');
+            if (submitBtn && submitLabel) {
+                submitLabel.innerText = cfg.btnText;
+                submitBtn.className = 'btn w-100 btn-submit-action shadow-sm mb-3';
+                if (role === 'manufacturer') {
+                    submitBtn.classList.add('btn-primary');
+                } else if (role === 'supplier') {
+                    submitBtn.classList.add('btn-success');
+                } else if (role === 'shopkeeper') {
+                    submitBtn.classList.add('btn-primary');
+                    submitBtn.style.backgroundColor = '#7c3aed';
+                    submitBtn.style.borderColor = '#7c3aed';
+                }
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const initialRole = document.getElementById('registerRoleInput').value || 'manufacturer';
-            setRegisterRole(initialRole);
+        function togglePassVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialRole = "<?= $selected_role ?>";
+            switchRegRole(initialRole);
         });
     </script>
-
 </body>
 </html>

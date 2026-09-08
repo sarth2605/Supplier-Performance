@@ -1,8 +1,8 @@
 <?php
 /**
  * Supplier Performance Analysis and Management System (SPAS)
- * Common Unified Authentication Gateway
- * Single login portal for: Manufacturer, Supplier, Shopkeeper, Admin
+ * Modern Unified Authentication Gateway
+ * Single login card with segmented role selector for: Administrator, Manufacturer, Supplier, Shopkeeper
  */
 
 require_once __DIR__ . '/../config/config.php';
@@ -10,13 +10,13 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// If already logged in, redirect directly to their role dashboard
+// If already logged in, redirect directly to role dashboard
 if (is_logged_in()) {
     redirect_to_role_dashboard($_SESSION['user_role'] ?? 'admin');
 }
 
 $error = '';
-$email = '';
+$identity = '';
 $selected_role = strtolower(trim($_GET['role'] ?? $_POST['role'] ?? 'admin'));
 $valid_roles = ['admin', 'manufacturer', 'supplier', 'shopkeeper'];
 if (!in_array($selected_role, $valid_roles)) {
@@ -24,7 +24,7 @@ if (!in_array($selected_role, $valid_roles)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+    $identity = trim($_POST['email'] ?? $_POST['identity'] ?? '');
     $password = $_POST['password'] ?? '';
     $selected_role = strtolower(trim($_POST['role'] ?? 'admin'));
     $csrf_token = $_POST['csrf_token'] ?? '';
@@ -35,13 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!verify_csrf_token($csrf_token)) {
         $error = 'Security session expired. Please refresh the page and try again.';
-    } elseif (empty($email) || empty($password)) {
-        $error = 'Please enter both your email address and password.';
+    } elseif (empty($identity) || empty($password)) {
+        $error = 'Please enter both your Email / Username and Password.';
     } else {
         try {
             $db = get_db();
-            $stmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-            $stmt->execute([$email]);
+            // Allow login by email OR username/full name
+            $stmt = $db->prepare("SELECT * FROM users WHERE email = ? OR name = ? LIMIT 1");
+            $stmt->execute([$identity, $identity]);
             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password'])) {
@@ -59,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'shopkeeper' => 'Shopkeeper'
                         ];
                         $actual_label = $role_display_names[$actual_role] ?? ucfirst($actual_role);
-                        $error = "This account is registered as <strong>{$actual_label}</strong>. Please select the <strong>{$actual_label}</strong> option above to sign in.";
+                        $error = "This account is registered as <strong>{$actual_label}</strong>. Please switch the role toggle to <strong>{$actual_label}</strong> to sign in.";
                     } else {
                         // Successful Authentication - Populate Session
                         $_SESSION['user_id'] = (int)$user['id'];
@@ -71,17 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_supplier_id'] = $user['supplier_id'] ?? null;
                         $_SESSION['user_dept'] = ($actual_role === 'manufacturer' ? 'R&D & Production' : ($actual_role === 'supplier' ? 'Logistics & Supply' : ($actual_role === 'shopkeeper' ? 'Retail Storefront' : 'System Governance')));
 
-                        log_activity($user['id'], 'User Sign In', 'Auth', $user['id'], 'User logged in via common portal as ' . $actual_role);
+                        log_activity($user['id'], 'User Sign In', 'Auth', $user['id'], 'User logged in via unified portal as ' . $actual_role);
                         set_flash('success', 'Welcome back, ' . htmlspecialchars($user['name']) . '!');
 
                         redirect_to_role_dashboard($actual_role);
                     }
                 }
             } else {
-                $error = 'Invalid email address or password. Please verify your credentials.';
+                $error = 'Invalid email/username or password. Please verify your credentials.';
             }
         } catch (Exception $e) {
-            $error = 'Database error occurred: ' . $e->getMessage();
+            $error = 'Database connection error: ' . $e->getMessage();
         }
     }
 }
@@ -91,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unified Portal Sign In — <?= APP_FULL_NAME ?></title>
+    <title>Unified Sign In — <?= APP_FULL_NAME ?></title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -108,95 +109,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <style>
         body {
-            background-color: #090d16;
+            background-color: #0b0f19;
             background-image: 
-                radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.12), transparent 35%),
-                radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.12), transparent 35%);
+                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.14), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.14), transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05), transparent 60%);
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: #f8fafc;
             min-height: 100vh;
         }
 
-        .auth-container {
-            max-width: 520px;
+        .auth-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6);
             width: 100%;
+            max-width: 480px;
         }
 
-        .auth-box {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 22px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Role Selector Cards */
-        .role-selector-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 1.5rem;
-        }
-
-        .role-option-btn {
+        /* Segmented Role Pill Selector */
+        .role-segmented-bar {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 0.75rem 0.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
+            border-radius: 14px;
+            padding: 4px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
             user-select: none;
         }
 
-        .role-option-btn i {
-            font-size: 1.25rem;
+        .role-pill-btn {
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .role-pill-btn i {
+            font-size: 1.05rem;
             transition: transform 0.2s ease;
         }
 
-        .role-option-btn span {
-            font-size: 0.72rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .role-option-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .role-pill-btn:hover {
             color: #ffffff;
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.06);
         }
 
-        /* Active Role Styles */
-        .role-option-btn.active[data-role="admin"] {
-            background: rgba(220, 38, 38, 0.15);
-            border-color: #ef4444;
-            color: #f87171;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        /* Active Roles */
+        .role-pill-btn.active[data-role="admin"] {
+            background: #dc2626;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
         }
-        .role-option-btn.active[data-role="manufacturer"] {
-            background: rgba(37, 99, 235, 0.15);
-            border-color: #3b82f6;
-            color: #60a5fa;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        .role-pill-btn.active[data-role="manufacturer"] {
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         }
-        .role-option-btn.active[data-role="supplier"] {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: #10b981;
-            color: #34d399;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        .role-pill-btn.active[data-role="supplier"] {
+            background: #059669;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
         }
-        .role-option-btn.active[data-role="shopkeeper"] {
-            background: rgba(139, 92, 246, 0.15);
-            border-color: #8b5cf6;
-            color: #c084fc;
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        .role-pill-btn.active[data-role="shopkeeper"] {
+            background: #7c3aed;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
         }
 
         .form-control-dark {
@@ -204,44 +197,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #ffffff;
             border-radius: 10px;
-            padding: 0.65rem 1rem;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
         }
         .form-control-dark:focus {
             background: rgba(255, 255, 255, 0.08);
             border-color: #38bdf8;
             color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
         }
 
-        .submit-btn {
+        .btn-submit-action {
             border-radius: 10px;
             font-weight: 700;
             padding: 0.75rem;
+            font-size: 0.92rem;
             transition: all 0.2s ease;
         }
 
-        .quick-badge-pill {
+        .quick-fill-chip {
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 9999px;
-            font-size: 0.72rem;
-            padding: 0.25rem 0.65rem;
+            font-size: 0.7rem;
+            padding: 3px 10px;
             color: #94a3b8;
             cursor: pointer;
             transition: all 0.15s ease;
+            text-decoration: none;
         }
-        .quick-badge-pill:hover {
-            background: rgba(255, 255, 255, 0.12);
+        .quick-fill-chip:hover {
+            background: rgba(255, 255, 255, 0.15);
             color: #ffffff;
         }
     </style>
 </head>
 <body class="d-flex flex-column justify-content-between">
 
-    <!-- Top Simple Bar with Home link -->
+    <!-- Top Navigation Header -->
     <header class="py-3 px-4 d-flex align-items-center justify-content-between">
         <a href="<?= BASE_URL ?>index.php" class="text-decoration-none d-flex align-items-center gap-2 text-white">
-            <div style="width: 32px; height: 32px; border-radius: 8px; background: #2563eb; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center;">
                 <i class="fa-solid fa-chart-line text-white small"></i>
             </div>
             <span class="fw-bold tracking-tight">SPAS</span>
@@ -256,189 +252,198 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </header>
 
-    <!-- Center Login Form -->
+    <!-- Center Unified Login Card -->
     <main class="container py-4 d-flex align-items-center justify-content-center flex-grow-1">
-        <div class="auth-container">
+        <div class="auth-card p-4 p-md-4 shadow">
             
-            <div class="auth-box p-4 p-md-4 mb-3">
-                
-                <!-- Title & Role Indicator -->
-                <div class="text-center mb-3">
-                    <h4 class="fw-extrabold text-white mb-1">Unified Sign In</h4>
-                    <p class="text-muted extra-small mb-0">Select your designated supply chain role to access your portal</p>
+            <!-- Header Section -->
+            <div class="text-center mb-3">
+                <h4 class="fw-bold text-white mb-1">Unified Sign In</h4>
+                <p class="text-muted extra-small mb-0">Select your role and enter your credentials to access your portal</p>
+            </div>
+
+            <!-- Flash & Error Alerts -->
+            <?php render_flash(); ?>
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger py-2 px-3 extra-small mb-3 rounded-3 d-flex align-items-start gap-2">
+                    <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                    <div><?= $error ?></div>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" action="<?= BASE_URL ?>auth/login.php" id="unifiedLoginForm">
+                <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                <input type="hidden" name="role" id="selectedRoleInput" value="<?= htmlspecialchars($selected_role) ?>">
+
+                <!-- 1. Segmented Role Selector -->
+                <div class="mb-3">
+                    <label class="form-label extra-small fw-bold text-uppercase text-light mb-1.5 d-flex justify-content-between">
+                        <span>Select Role</span>
+                        <span id="roleBadgeLabel" class="text-secondary font-monospace" style="font-size: 0.68rem;">ADMINISTRATOR</span>
+                    </label>
+                    <div class="role-segmented-bar">
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'admin') ? 'active' : '' ?>" data-role="admin" onclick="switchRole('admin')">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Admin</span>
+                        </button>
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'manufacturer') ? 'active' : '' ?>" data-role="manufacturer" onclick="switchRole('manufacturer')">
+                            <i class="fa-solid fa-industry"></i>
+                            <span>Manufacturer</span>
+                        </button>
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'supplier') ? 'active' : '' ?>" data-role="supplier" onclick="switchRole('supplier')">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            <span>Supplier</span>
+                        </button>
+                        <button type="button" class="role-pill-btn <?= ($selected_role === 'shopkeeper') ? 'active' : '' ?>" data-role="shopkeeper" onclick="switchRole('shopkeeper')">
+                            <i class="fa-solid fa-store"></i>
+                            <span>Shopkeeper</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Flash / Error Alerts -->
-                <?php render_flash(); ?>
-                <?php if (!empty($error)): ?>
-                    <div class="alert alert-danger py-2 px-3 extra-small mb-3 rounded-3 d-flex align-items-start gap-2">
-                        <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
-                        <div><?= $error ?></div>
+                <!-- 2. Email or Username -->
+                <div class="mb-3">
+                    <label for="identity" class="form-label extra-small fw-bold text-uppercase text-light mb-1">Email / Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" class="form-control form-control-dark border-start-0 ps-0" id="identity" name="email" value="<?= htmlspecialchars($identity) ?>" placeholder="Email address or username" required autofocus>
                     </div>
-                <?php endif; ?>
+                </div>
 
-                <form method="POST" action="<?= BASE_URL ?>auth/login.php" id="loginForm">
-                    <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
-                    <input type="hidden" name="role" id="roleInput" value="<?= htmlspecialchars($selected_role) ?>">
-
-                    <!-- 1. Role Selection Grid -->
-                    <label class="form-label extra-small fw-bold text-uppercase text-light mb-2">Select Your Role</label>
-                    <div class="role-selector-grid">
-                        
-                        <!-- Admin -->
-                        <div class="role-option-btn <?= ($selected_role === 'admin') ? 'active' : '' ?>" data-role="admin" onclick="selectRole('admin')">
-                            <i class="fa-solid fa-user-shield text-danger"></i>
-                            <span>Admin</span>
-                        </div>
-
-                        <!-- Manufacturer -->
-                        <div class="role-option-btn <?= ($selected_role === 'manufacturer') ? 'active' : '' ?>" data-role="manufacturer" onclick="selectRole('manufacturer')">
-                            <i class="fa-solid fa-industry text-primary"></i>
-                            <span>Manufacturer</span>
-                        </div>
-
-                        <!-- Supplier -->
-                        <div class="role-option-btn <?= ($selected_role === 'supplier') ? 'active' : '' ?>" data-role="supplier" onclick="selectRole('supplier')">
-                            <i class="fa-solid fa-truck-ramp-box text-success"></i>
-                            <span>Supplier</span>
-                        </div>
-
-                        <!-- Shopkeeper -->
-                        <div class="role-option-btn <?= ($selected_role === 'shopkeeper') ? 'active' : '' ?>" data-role="shopkeeper" onclick="selectRole('shopkeeper')">
-                            <i class="fa-solid fa-store" style="color: #a855f7;"></i>
-                            <span>Shopkeeper</span>
-                        </div>
-
+                <!-- 3. Password -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="password" class="form-label extra-small fw-bold text-uppercase text-light mb-0">Password</label>
+                        <a href="<?= BASE_URL ?>auth/forgot_password.php" class="extra-small text-info text-decoration-none">Forgot Password?</a>
                     </div>
-
-                    <!-- Role Description Banner -->
-                    <div class="p-2 rounded-3 bg-white bg-opacity-5 border border-white border-opacity-10 mb-3 extra-small text-light d-flex align-items-center gap-2" id="roleBanner">
-                        <i class="fa-solid fa-circle-info text-info"></i>
-                        <span id="roleBannerText">Logging in as Administrator</span>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" class="form-control form-control-dark border-start-0 border-end-0 ps-0" id="password" name="password" placeholder="••••••••••••" required>
+                        <button class="btn btn-outline-secondary border-secondary border-opacity-50 text-light" type="button" onclick="togglePasswordVisibility()">
+                            <i class="fa-solid fa-eye" id="toggleIcon"></i>
+                        </button>
                     </div>
+                </div>
 
-                    <!-- 2. Email Address -->
-                    <div class="mb-3">
-                        <label for="email" class="form-label extra-small fw-bold text-uppercase text-light">Email Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
-                                <i class="fa-solid fa-envelope"></i>
-                            </span>
-                            <input type="email" class="form-control form-control-dark border-start-0 ps-0" id="email" name="email" value="<?= htmlspecialchars($email) ?>" placeholder="name@company.com" required autofocus>
-                        </div>
+                <!-- 4. Sign In Button -->
+                <button type="submit" class="btn btn-primary w-100 btn-submit-action shadow-sm mb-3" id="submitBtn">
+                    <span id="submitBtnLabel">Sign In as Administrator</span> <i class="fa-solid fa-arrow-right ms-1"></i>
+                </button>
+
+                <!-- 5. Register Link / Role Toggle Note -->
+                <div class="text-center extra-small text-muted mb-3" id="registerToggleNotice">
+                    <span id="regQuestionText">Don't have an account?</span> 
+                    <a href="<?= BASE_URL ?>auth/register.php" class="text-info text-decoration-none fw-semibold" id="regTargetLink">Register here</a>
+                </div>
+
+                <!-- 6. Quick Evaluator Pre-fill Chips -->
+                <div class="pt-3 border-top border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="extra-small text-muted">Quick Evaluator Test:</span>
+                        <span class="extra-small text-info font-monospace">Click to pre-fill</span>
                     </div>
-
-                    <!-- 3. Password -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label for="password" class="form-label extra-small fw-bold text-uppercase text-light mb-0">Password</label>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-secondary border-opacity-50 text-light border-end-0">
-                                <i class="fa-solid fa-lock"></i>
-                            </span>
-                            <input type="password" class="form-control form-control-dark border-start-0 border-end-0 ps-0" id="password" name="password" placeholder="••••••••••••" required>
-                            <button class="btn btn-outline-secondary border-secondary border-opacity-50 text-light" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()">
-                                <i class="fa-solid fa-eye" id="toggleIcon"></i>
-                            </button>
-                        </div>
+                    <div class="d-flex flex-wrap gap-1.5 justify-content-center">
+                        <span class="quick-fill-chip" onclick="quickFill('admin', 'test_admin@spas.gov', 'Admin@Pass123')">Admin</span>
+                        <span class="quick-fill-chip" onclick="quickFill('manufacturer', 'test_mfr@glowtech.in', 'Mfr@Pass123')">Manufacturer</span>
+                        <span class="quick-fill-chip" onclick="quickFill('supplier', 'test_sup@glowbeauty.in', 'Sup@Pass123')">Supplier</span>
+                        <span class="quick-fill-chip" onclick="quickFill('shopkeeper', 'test_shop@luxeglamour.in', 'Shop@Pass123')">Shopkeeper</span>
                     </div>
+                </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary w-100 submit-btn shadow-sm mb-3" id="submitBtn">
-                        Sign In as Administrator <i class="fa-solid fa-arrow-right ms-1"></i>
-                    </button>
-
-                    <!-- Quick Demo Fill Pills for Testing / Evaluation -->
-                    <div class="pt-2 border-top border-secondary border-opacity-25">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="extra-small text-muted">Quick Test Fill:</span>
-                            <span class="extra-small text-info">Click to pre-fill</span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-1.5">
-                            <span class="quick-badge-pill" onclick="quickFill('admin', 'test_admin@spas.gov', 'Admin@Pass123')">Admin</span>
-                            <span class="quick-badge-pill" onclick="quickFill('manufacturer', 'test_mfr@glowtech.in', 'Mfr@Pass123')">Manufacturer</span>
-                            <span class="quick-badge-pill" onclick="quickFill('supplier', 'test_sup@glowbeauty.in', 'Sup@Pass123')">Supplier</span>
-                            <span class="quick-badge-pill" onclick="quickFill('shopkeeper', 'test_shop@luxeglamour.in', 'Shop@Pass123')">Shopkeeper</span>
-                        </div>
-                    </div>
-
-                </form>
-
-            </div>
-
-            <!-- Footer Link to Unified Register -->
-            <div class="text-center">
-                <p class="text-muted small mb-0">
-                    Don't have an account? 
-                    <a href="<?= BASE_URL ?>auth/register.php" class="text-primary fw-bold text-decoration-none">
-                        Register as Manufacturer, Supplier, or Shopkeeper
-                    </a>
-                </p>
-            </div>
-
+            </form>
         </div>
     </main>
 
-    <!-- Simple Bottom Footer -->
-    <footer class="py-3 text-center text-muted extra-small">
-        &copy; <?= date('Y') ?> Supplier Performance Analysis and Management System (SPAS) &bull; Enterprise Edition
+    <!-- Footer -->
+    <footer class="py-3 px-4 text-center extra-small text-muted">
+        <span>&copy; <?= date('Y') ?> Supplier Performance Analysis & Management System (SPAS). Enterprise v2.5</span>
     </footer>
 
-    <!-- Role Selection JavaScript Logic -->
+    <!-- JavaScript Interactions -->
     <script>
-        const roleData = {
+        const roleMeta = {
             'admin': {
                 name: 'Administrator',
-                color: 'btn-danger',
-                text: 'Central Governance, User Approvals & System Analytics'
+                color: '#dc2626',
+                btnClass: 'btn-danger',
+                hasPublicReg: false
             },
             'manufacturer': {
                 name: 'Manufacturer',
-                color: 'btn-primary',
-                text: 'Batch Formulations, Factory Inventory & Outbound Transfers'
+                color: '#2563eb',
+                btnClass: 'btn-primary',
+                hasPublicReg: true
             },
             'supplier': {
                 name: 'Supplier',
-                color: 'btn-success',
-                text: 'Wholesale Warehousing, Purchase Orders & Scorecard Feedback'
+                color: '#059669',
+                btnClass: 'btn-success',
+                hasPublicReg: true
             },
             'shopkeeper': {
                 name: 'Shopkeeper',
-                color: 'btn-purple',
-                text: 'Retail Boutique, Stock Receipt & Defect Claims'
+                color: '#7c3aed',
+                btnClass: 'btn-purple',
+                hasPublicReg: true
             }
         };
 
-        function selectRole(roleKey) {
-            document.getElementById('roleInput').value = roleKey;
+        function switchRole(roleKey) {
+            const role = roleMeta[roleKey] ? roleKey : 'admin';
+            const meta = roleMeta[role];
 
-            // Highlight buttons
-            document.querySelectorAll('.role-option-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-role') === roleKey) {
-                    btn.classList.add('active');
-                }
+            // 1. Update Hidden Input
+            document.getElementById('selectedRoleInput').value = role;
+
+            // 2. Update Segmented Buttons
+            document.querySelectorAll('.role-pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-role') === role);
             });
 
-            // Update description banner and button text
-            const meta = roleData[roleKey] || roleData['admin'];
-            document.getElementById('roleBannerText').textContent = 'Logging in as ' + meta.name + ' — ' + meta.text;
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.className = 'btn w-100 submit-btn shadow-sm mb-3 ' + (meta.color === 'btn-purple' ? 'text-white' : meta.color);
-            if (meta.color === 'btn-purple') {
-                submitBtn.style.backgroundColor = '#7c3aed';
-            } else {
-                submitBtn.style.backgroundColor = '';
+            // 3. Update Badge Label
+            const badge = document.getElementById('roleBadgeLabel');
+            if (badge) {
+                badge.innerText = meta.name.toUpperCase();
+                badge.style.color = meta.color;
             }
-            submitBtn.innerHTML = 'Sign In as ' + meta.name + ' <i class="fa-solid fa-arrow-right ms-1"></i>';
-        }
 
-        function quickFill(role, email, pass) {
-            selectRole(role);
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = pass;
+            // 4. Update Button Text and Style
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnLabel = document.getElementById('submitBtnLabel');
+            if (submitBtn && submitBtnLabel) {
+                submitBtnLabel.innerText = 'Sign In as ' + meta.name;
+                submitBtn.className = 'btn w-100 btn-submit-action shadow-sm mb-3';
+                if (role === 'admin') {
+                    submitBtn.classList.add('btn-danger');
+                } else if (role === 'manufacturer') {
+                    submitBtn.classList.add('btn-primary');
+                } else if (role === 'supplier') {
+                    submitBtn.classList.add('btn-success');
+                } else {
+                    submitBtn.classList.add('btn-primary');
+                    submitBtn.style.backgroundColor = '#7c3aed';
+                    submitBtn.style.borderColor = '#7c3aed';
+                }
+            }
+
+            // 5. Update Registration Toggle Link
+            const regNotice = document.getElementById('registerToggleNotice');
+            const regQuestion = document.getElementById('regQuestionText');
+            const regLink = document.getElementById('regTargetLink');
+
+            if (role === 'admin') {
+                regQuestion.innerText = "Admin accounts are pre-provisioned.";
+                regLink.innerText = "Need partner account? Register here";
+                regLink.href = "<?= BASE_URL ?>auth/register.php?role=manufacturer";
+            } else {
+                regQuestion.innerText = "Don't have an account?";
+                regLink.innerText = "Register here";
+                regLink.href = "<?= BASE_URL ?>auth/register.php?role=" + encodeURIComponent(role);
+            }
         }
 
         function togglePasswordVisibility() {
@@ -446,19 +451,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const icon = document.getElementById('toggleIcon');
             if (passInput.type === 'password') {
                 passInput.type = 'text';
-                icon.className = 'fa-solid fa-eye-slash';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
             } else {
                 passInput.type = 'password';
-                icon.className = 'fa-solid fa-eye';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
         }
 
-        // Initialize state on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const initialRole = document.getElementById('roleInput').value || 'admin';
-            selectRole(initialRole);
+        function quickFill(role, email, pass) {
+            switchRole(role);
+            document.getElementById('identity').value = email;
+            document.getElementById('password').value = pass;
+        }
+
+        // Initialize with default/URL role
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialRole = "<?= $selected_role ?>";
+            switchRole(initialRole);
         });
     </script>
-
 </body>
 </html>

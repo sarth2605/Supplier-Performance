@@ -330,7 +330,6 @@ try {
             <!-- Navigation Links (Desktop) -->
             <nav class="d-none d-xl-flex align-items-center gap-1">
                 <a href="<?= BASE_URL ?>index.php" class="home-nav-link text-white fw-bold"><i class="fa-solid fa-house me-1 text-primary"></i> Home</a>
-                <a href="#portals" class="home-nav-link">Portals</a>
                 <a href="#framework" class="home-nav-link">Evaluation Criteria</a>
                 <a href="#calculator" class="home-nav-link">Score Simulator</a>
                 <a href="#pipeline" class="home-nav-link">Supply Chain Flow</a>
@@ -400,8 +399,8 @@ try {
                         <a href="<?= BASE_URL ?>auth/register.php" class="btn btn-outline-light btn-lg px-4 py-2.5 rounded-pill fw-semibold">
                             <i class="fa-solid fa-user-plus me-2"></i> Register New Account
                         </a>
-                        <a href="#portals" class="btn btn-link text-light text-decoration-none px-2 py-2.5 small">
-                            <i class="fa-solid fa-sitemap me-1.5"></i> Explore 4 Portals &rarr;
+                        <a href="#framework" class="btn btn-link text-light text-decoration-none px-2 py-2.5 small">
+                            <i class="fa-solid fa-arrow-down me-1.5"></i> Explore Framework &rarr;
                         </a>
                     </div>
 
@@ -558,143 +557,7 @@ try {
     </section>
 
 
-    <!-- =======================================================
-         4. THE 4 STAKEHOLDER PORTALS ECOSYSTEM
-         ======================================================= -->
-    <section class="py-5 bg-light border-bottom" id="portals">
-        <div class="container-fluid px-lg-5 py-4">
-            
-            <div class="text-center max-w-xl mx-auto mb-5" style="max-width: 720px;">
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill fw-bold extra-small text-uppercase mb-2">
-                    Role-Based Architecture
-                </span>
-                <h2 class="fw-extrabold display-6 text-dark tracking-tight">Dedicated Stakeholder Portals</h2>
-                <p class="text-muted small">
-                    Engineered with strict Role-Based Access Control (RBAC) to provide isolated operational consoles tailored to each tier of the supply chain ecosystem.
-                </p>
-            </div>
 
-            <div class="row g-4 justify-content-center">
-                
-                <!-- 1. Administrator Portal -->
-                <div class="col-md-6 col-xl-3">
-                    <div class="portal-grid-card admin-theme d-flex flex-column h-100">
-                        <div class="portal-avatar-icon bg-danger bg-opacity-10 text-danger">
-                            <i class="fa-solid fa-user-shield"></i>
-                        </div>
-                        <span class="badge bg-danger bg-opacity-10 text-danger extra-small fw-bold px-2 py-1 mb-2 align-self-start">CENTRAL GOVERNANCE</span>
-                        <h4 class="fw-bold text-dark mb-2">Administrator</h4>
-                        <p class="text-muted small mb-3">
-                            Executive command center, user account approval, system logs, security audits, and Reports Studio.
-                        </p>
-                        <ul class="list-unstyled extra-small text-secondary mb-4 space-y-1.5 flex-grow-1">
-                            <li><i class="fa-solid fa-check text-danger me-1.5"></i> Executive Performance Dashboard</li>
-                            <li><i class="fa-solid fa-check text-danger me-1.5"></i> 12 Reports Studio & CSV Export</li>
-                            <li><i class="fa-solid fa-check text-danger me-1.5"></i> User Governance & RBAC Controls</li>
-                        </ul>
-                        <div class="d-flex flex-column gap-2 mt-auto">
-                            <a href="<?= BASE_URL ?>auth/login.php?role=admin" class="btn btn-danger w-100 py-2 rounded-3 fw-semibold shadow-sm">
-                                <i class="fa-solid fa-user-shield me-1.5"></i> Admin Sign In
-                            </a>
-                            <span class="text-center extra-small text-muted py-1">
-                                <i class="fa-solid fa-lock me-1"></i> Pre-provisioned (No Public Registration)
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Manufacturer Portal -->
-                <div class="col-md-6 col-xl-3">
-                    <div class="portal-grid-card mfr-theme d-flex flex-column h-100">
-                        <div class="portal-avatar-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="fa-solid fa-industry"></i>
-                        </div>
-                        <span class="badge bg-primary bg-opacity-10 text-primary extra-small fw-bold px-2 py-1 mb-2 align-self-start">TIER 1 ORIGIN</span>
-                        <h4 class="fw-bold text-dark mb-2">Manufacturer</h4>
-                        <p class="text-muted small mb-3">
-                            Formulate cosmetic batches, manage factory inventory, and initiate primary product transfers to suppliers.
-                        </p>
-                        <ul class="list-unstyled extra-small text-secondary mb-4 space-y-1.5 flex-grow-1">
-                            <li><i class="fa-solid fa-check text-primary me-1.5"></i> Formulation & Batch Creation</li>
-                            <li><i class="fa-solid fa-check text-primary me-1.5"></i> Factory Inventory Ledger</li>
-                            <li><i class="fa-solid fa-check text-primary me-1.5"></i> Outgoing Supplier Transfers</li>
-                        </ul>
-                        <div class="d-flex flex-column gap-2 mt-auto">
-                            <a href="<?= BASE_URL ?>auth/login.php?role=manufacturer" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm">
-                                <i class="fa-solid fa-right-to-bracket me-1.5"></i> Manufacturer Sign In
-                            </a>
-                            <a href="<?= BASE_URL ?>auth/register.php?role=manufacturer" class="btn btn-outline-primary w-100 py-1.5 rounded-3 fw-semibold extra-small">
-                                <i class="fa-solid fa-user-plus me-1.5"></i> Register as Manufacturer
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Supplier Portal -->
-                <div class="col-md-6 col-xl-3">
-                    <div class="portal-grid-card sup-theme d-flex flex-column h-100">
-                        <div class="portal-avatar-icon bg-success bg-opacity-10 text-success">
-                            <i class="fa-solid fa-truck-ramp-box"></i>
-                        </div>
-                        <span class="badge bg-success bg-opacity-10 text-success extra-small fw-bold px-2 py-1 mb-2 align-self-start">DISTRIBUTION HUB</span>
-                        <h4 class="fw-bold text-dark mb-2">Supplier</h4>
-                        <p class="text-muted small mb-3">
-                            Fulfill purchase orders, manage regional warehouse stock, dispatch goods, and inspect real-time performance feedback.
-                        </p>
-                        <ul class="list-unstyled extra-small text-secondary mb-4 space-y-1.5 flex-grow-1">
-                            <li><i class="fa-solid fa-check text-success me-1.5"></i> Receive Manufacturer Batches</li>
-                            <li><i class="fa-solid fa-check text-success me-1.5"></i> Dispatch to Retail Shopkeepers</li>
-                            <li><i class="fa-solid fa-check text-success me-1.5"></i> Live Scorecard & Rating Transparency</li>
-                        </ul>
-                        <div class="d-flex flex-column gap-2 mt-auto">
-                            <a href="<?= BASE_URL ?>auth/login.php?role=supplier" class="btn btn-success w-100 py-2 rounded-3 fw-semibold shadow-sm">
-                                <i class="fa-solid fa-right-to-bracket me-1.5"></i> Supplier Sign In
-                            </a>
-                            <a href="<?= BASE_URL ?>auth/register.php?role=supplier" class="btn btn-outline-success w-100 py-1.5 rounded-3 fw-semibold extra-small">
-                                <i class="fa-solid fa-user-plus me-1.5"></i> Register as Supplier
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Shopkeeper Portal -->
-                <div class="col-md-6 col-xl-3">
-                    <div class="portal-grid-card shop-theme d-flex flex-column h-100">
-                        <div class="portal-avatar-icon text-purple" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                            <i class="fa-solid fa-store"></i>
-                        </div>
-                        <span class="badge bg-purple bg-opacity-10 text-purple extra-small fw-bold px-2 py-1 mb-2 align-self-start" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.1);">RETAIL FRONT</span>
-                        <h4 class="fw-bold text-dark mb-2">Shopkeeper</h4>
-                        <p class="text-muted small mb-3">
-                            Browse wholesale product catalog, receive stock transfers, manage store shelves, and submit return defect claims.
-                        </p>
-                        <ul class="list-unstyled extra-small text-secondary mb-4 space-y-1.5 flex-grow-1">
-                            <li><i class="fa-solid fa-check text-purple me-1.5" style="color: #8b5cf6;"></i> Wholesale Cosmetics Catalog</li>
-                            <li><i class="fa-solid fa-check text-purple me-1.5" style="color: #8b5cf6;"></i> Confirm Inbound Shipments</li>
-                            <li><i class="fa-solid fa-check text-purple me-1.5" style="color: #8b5cf6;"></i> Defect Returns & Refund Tracking</li>
-                        </ul>
-                        <div class="d-flex flex-column gap-2 mt-auto">
-                            <a href="<?= BASE_URL ?>auth/login.php?role=shopkeeper" class="btn w-100 py-2 rounded-3 fw-semibold text-white shadow-sm" style="background: #7c3aed;">
-                                <i class="fa-solid fa-right-to-bracket me-1.5"></i> Shopkeeper Sign In
-                            </a>
-                            <a href="<?= BASE_URL ?>auth/register.php?role=shopkeeper" class="btn btn-outline-secondary w-100 py-1.5 rounded-3 fw-semibold extra-small" style="color: #7c3aed; border-color: #7c3aed;">
-                                <i class="fa-solid fa-user-plus me-1.5"></i> Register as Shopkeeper
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Single Button for Portal Selection -->
-            <div class="text-center mt-4">
-                <a href="<?= BASE_URL ?>auth/portal_select.php" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold small">
-                    <i class="fa-solid fa-table-cells me-1.5"></i> Open Multi-Portal Gateway & Registration Center
-                </a>
-            </div>
-
-        </div>
-    </section>
 
 
     <!-- =======================================================
@@ -1317,7 +1180,7 @@ try {
                         <li><a href="<?= BASE_URL ?>auth/login.php?role=manufacturer" class="text-light text-decoration-none hover-white"><i class="fa-solid fa-industry me-1.5 text-primary"></i> Manufacturer Portal</a></li>
                         <li><a href="<?= BASE_URL ?>auth/login.php?role=supplier" class="text-light text-decoration-none hover-white"><i class="fa-solid fa-truck-ramp-box me-1.5 text-success"></i> Supplier 360 Portal</a></li>
                         <li><a href="<?= BASE_URL ?>auth/login.php?role=shopkeeper" class="text-light text-decoration-none hover-white"><i class="fa-solid fa-store me-1.5 text-purple" style="color: #8b5cf6;"></i> Shopkeeper Boutique</a></li>
-                        <li><a href="<?= BASE_URL ?>auth/portal_select.php" class="text-light text-decoration-none hover-white"><i class="fa-solid fa-table-cells me-1.5"></i> Portal Gateway Directory</a></li>
+                        <li><a href="<?= BASE_URL ?>auth/login.php" class="text-light text-decoration-none hover-white"><i class="fa-solid fa-right-to-bracket me-1.5 text-info"></i> Unified Sign In</a></li>
                     </ul>
                 </div>
 
@@ -1342,7 +1205,7 @@ try {
                 <div class="d-flex align-items-center gap-3 mt-2 mt-md-0">
                     <span>Release v2.5 Enterprise</span>
                     <span>&bull;</span>
-                    <a href="<?= BASE_URL ?>auth/portal_select.php" class="text-light text-decoration-none">Portals</a>
+                    <a href="<?= BASE_URL ?>auth/login.php" class="text-light text-decoration-none">Sign In</a>
                     <span>&bull;</span>
                     <a href="<?= BASE_URL ?>dashboard/index.php" class="text-light text-decoration-none">Dashboard</a>
                 </div>

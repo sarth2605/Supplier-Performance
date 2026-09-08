@@ -61,6 +61,21 @@ $shop_pass = password_hash('Shop@Pass123', PASSWORD_BCRYPT);
 $pdo->prepare("INSERT INTO users (name, email, password, role, shop_name, phone, city, state, status) VALUES (?, ?, ?, 'shopkeeper', ?, ?, ?, ?, 'Active')")
     ->execute(['Priya Kapoor', 'test_shop@luxeglamour.in', $shop_pass, 'Luxe Glamour Beauty Boutique', '9833445566', 'Bangalore', 'Karnataka']);
 
+// 5b. Fetch created user IDs
+$mfr_id = $pdo->query("SELECT id FROM users WHERE email = 'test_mfr@glowtech.in'")->fetchColumn();
+$sup_user_id = $pdo->query("SELECT id FROM users WHERE email = 'test_sup@glowbeauty.in'")->fetchColumn();
+$shop_id = $pdo->query("SELECT id FROM users WHERE email = 'test_shop@luxeglamour.in'")->fetchColumn();
+$prod_id = $pdo->query("SELECT id FROM products ORDER BY id ASC LIMIT 1")->fetchColumn() ?: 1;
+
+// Seed initial inventory
+$pdo->prepare("INSERT IGNORE INTO user_inventory (user_id, role, product_id, quantity, batch_number) VALUES (?, 'manufacturer', ?, 500, 'BATCH-MFR-001')")->execute([$mfr_id, $prod_id]);
+$pdo->prepare("INSERT IGNORE INTO user_inventory (user_id, role, product_id, quantity, batch_number) VALUES (?, 'supplier', ?, 250, 'BATCH-SUP-001')")->execute([$sup_user_id, $prod_id]);
+$pdo->prepare("INSERT IGNORE INTO user_inventory (user_id, role, product_id, quantity, batch_number) VALUES (?, 'shopkeeper', ?, 80, 'BATCH-SHP-001')")->execute([$shop_id, $prod_id]);
+
+// Seed initial transfers
+$pdo->prepare("INSERT IGNORE INTO product_transfers (transfer_ref, product_id, sender_id, sender_role, receiver_id, receiver_role, stage, quantity, batch_number, unit_price, total_amount, status) VALUES ('TRF-2026-001', ?, ?, 'manufacturer', ?, 'supplier', 'manufacturer_to_supplier', 150, 'BATCH-MFR-001', 450.00, 67500.00, 'received')")->execute([$prod_id, $mfr_id, $sup_user_id]);
+$pdo->prepare("INSERT IGNORE INTO product_transfers (transfer_ref, product_id, sender_id, sender_role, receiver_id, receiver_role, stage, quantity, batch_number, unit_price, total_amount, status) VALUES ('TRF-2026-002', ?, ?, 'supplier', ?, 'shopkeeper', 'supplier_to_shopkeeper', 50, 'BATCH-SUP-001', 650.00, 32500.00, 'in_transit')")->execute([$prod_id, $sup_user_id, $shop_id]);
+
 $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
 
 echo "6. Verifying Database Tables & Counts...\n";
